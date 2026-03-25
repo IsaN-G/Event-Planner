@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+/* Basis-Stile für den modernen Look */
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f9fafb; /* Entspricht bg-gray-50 */
+    color: #111827; /* Entspricht text-gray-900 */
+  }
+}

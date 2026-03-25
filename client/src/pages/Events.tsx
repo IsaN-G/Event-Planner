@@ -22,7 +22,6 @@ interface EventType {
   category: string;
   maxParticipants: number;
   imageUrl?: string;
-  organizerId: number;
 }
 
 export default function Events() {
@@ -33,7 +32,7 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Neue States für Suche und Filter
+  // States für Suche und Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Alle');
 
@@ -43,9 +42,6 @@ export default function Events() {
     'Gesellschaftliche Veranstaltungen',
     'Kultur-/Unterhaltungsveranstaltungen',
     'Wohltätigkeitsveranstaltungen (Charity)',
-    'Virtuelle Veranstaltungen',
-    'Hybridveranstaltungen',
-    'Pop-up-Events',
     'Kinder-Event',
     'Allgemein'
   ];
@@ -69,7 +65,7 @@ export default function Events() {
     fetchEvents();
   }, []);
 
-  // Logik für die Filterung
+  // Filter-Logik
   const filteredEvents = events.filter(event => {
     const matchesSearch = 
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,16 +78,30 @@ export default function Events() {
   const formatDateTimeDisplay = (startStr: string, endStr: string) => {
     const start = new Date(startStr);
     const end = new Date(endStr);
-    const date = start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' });
-    const startTime = start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-    const endTime = end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    
+    const date = start.toLocaleDateString('de-DE', { 
+      day: '2-digit', 
+      month: 'long' 
+    });
+    
+    const startTime = start.toLocaleTimeString('de-DE', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  
+    const endTime = end.toLocaleTimeString('de-DE', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  
+    // Jetzt wird endStr (via endTime) benutzt!
     return `${date} | ${startTime} - ${endTime} Uhr`;
   };
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-6">
       <div className="max-w-7xl mx-auto">
         
+        {/* Header-Bereich */}
         <div className="flex justify-between items-end mb-12">
           <div>
             <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-2">
@@ -116,15 +126,15 @@ export default function Events() {
             <input 
               type="text"
               placeholder="Nach Titel oder Ort suchen..."
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-medium"
+              className="w-full pl-12 pr-4 py-4 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-medium outline-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="relative">
+          <div className="relative min-w-[200px]">
             <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <select 
-              className="pl-12 pr-10 py-4 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold text-gray-700 appearance-none cursor-pointer"
+              className="w-full pl-12 pr-10 py-4 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold text-gray-700 appearance-none cursor-pointer outline-none"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
@@ -156,6 +166,7 @@ export default function Events() {
                   key={event.id} 
                   className="group bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col"
                 >
+                  {/* Bild-Bereich */}
                   <div className="relative h-64 overflow-hidden">
                     <img 
                       src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4'} 
@@ -167,6 +178,7 @@ export default function Events() {
                     </div>
                   </div>
                   
+                  {/* Content-Bereich */}
                   <div className="p-8 flex flex-col flex-1">
                     <h3 className="text-xl font-bold mb-4 line-clamp-2 text-gray-900">{event.title}</h3>
 

@@ -1,0 +1,13 @@
+{
+  "name": "event-planner",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:client": "cd client && bun dev",
+    "dev:server": "cd server && bun --watch src/server.ts",
+    "dev": "concurrently \"bun run dev:server\" \"bun run dev:client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

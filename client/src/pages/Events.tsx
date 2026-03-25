@@ -5,8 +5,8 @@ import {
   CalendarDays, 
   Users, 
   Loader2, 
-  Trash2, 
-  Clock 
+  Search,
+  Filter
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -33,6 +33,23 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Neue States für Suche und Filter
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Alle');
+
+  const categories = [
+    'Alle',
+    'Firmenveranstaltungen',
+    'Gesellschaftliche Veranstaltungen',
+    'Kultur-/Unterhaltungsveranstaltungen',
+    'Wohltätigkeitsveranstaltungen (Charity)',
+    'Virtuelle Veranstaltungen',
+    'Hybridveranstaltungen',
+    'Pop-up-Events',
+    'Kinder-Event',
+    'Allgemein'
+  ];
+
   const fetchEvents = async () => {
     try {
       setLoading(true);
@@ -52,141 +69,125 @@ export default function Events() {
     fetchEvents();
   }, []);
 
+  // Logik für die Filterung
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = 
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'Alle' || event.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
+
   const formatDateTimeDisplay = (startStr: string, endStr: string) => {
     const start = new Date(startStr);
     const end = new Date(endStr);
-    const isSameDay = start.toDateString() === end.toDateString();
-
-    if (isSameDay) {
-      return (
-        <div className="flex flex-col">
-          <span className="font-bold text-gray-900">
-            {start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' })}
-          </span>
-          <span className="text-xs text-blue-600 flex items-center gap-1">
-            <Clock size={12} /> 
-            {start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} 
-            - {end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr
-          </span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex flex-col">
-        <span className="font-bold text-gray-900">
-          {start.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })} 
-          - {end.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })}
-        </span>
-        <span className="text-xs text-blue-500 font-black uppercase">Mehrtägig</span>
-      </div>
-    );
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Event wirklich löschen?")) return;
-    
-    try {
-      await api.delete(`/events/${id}`);
-      setEvents(prev => prev.filter(e => e.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Fehler beim Löschen des Events");
-    }
+    const date = start.toLocaleDateString('de-DE', { day: '2-digit', month: 'long' });
+    const startTime = start.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const endTime = end.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    return `${date} | ${startTime} - ${endTime} Uhr`;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
-      <div className="relative bg-slate-900 h-[40vh] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 opacity-40 bg-[url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2000')] bg-cover bg-center" />
+    <div className="min-h-screen bg-gray-50 py-12 px-6">
+      <div className="max-w-7xl mx-auto">
         
-        <div className="relative z-10 text-center">
-          <h1 className="text-6xl font-black text-white tracking-tighter mb-6 italic uppercase">
-            Explore.
-          </h1>
-
-
+        <div className="flex justify-between items-end mb-12">
+          <div>
+            <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-2">
+              Entdecke <span className="text-blue-600">Events</span>
+            </h1>
+            <p className="text-gray-500 font-medium">Finde spannende Erlebnisse in deiner Umgebung.</p>
+          </div>
           {(user?.role === 'organizer' || user?.role === 'admin') && (
             <button 
               onClick={() => navigate('/create-event')}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2 mx-auto shadow-xl transition-all"
+              className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
             >
-              <PlusCircle size={24} /> Event planen
+              <PlusCircle size={20} /> Event erstellen
             </button>
           )}
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-  
-        {error && (
-          <div className="mb-10 p-5 bg-red-50 border-l-8 border-red-500 text-red-700 rounded-r-2xl flex items-center gap-4 shadow-sm">
-            <div>
-              <p className="font-bold text-sm uppercase">Fehler</p>
-              <p className="text-sm opacity-90">{error}</p>
-            </div>
+        {/* Such- und Filterleiste */}
+        <div className="flex flex-col md:flex-row gap-4 mb-10">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input 
+              type="text"
+              placeholder="Nach Titel oder Ort suchen..."
+              className="w-full pl-12 pr-4 py-4 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-medium"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        )}
+          <div className="relative">
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <select 
+              className="pl-12 pr-10 py-4 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold text-gray-700 appearance-none cursor-pointer"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              {categories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-blue-600" size={40} />
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
+            <p className="text-gray-500 font-bold">Events werden geladen...</p>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 text-red-600 p-6 rounded-3xl border border-red-100 text-center">
+            {error}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {events.length === 0 ? (
-              <p className="col-span-full text-center text-gray-500 py-12">
-                Noch keine Events vorhanden.
-              </p>
+            {filteredEvents.length === 0 ? (
+              <div className="col-span-full text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+                <p className="text-gray-400 font-medium">Keine Events gefunden, die deiner Suche entsprechen.</p>
+              </div>
             ) : (
-              events.map(event => (
+              filteredEvents.map((event) => (
                 <div 
                   key={event.id} 
-                  className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl transition-all group flex flex-col relative"
+                  className="group bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col"
                 >
-                  {(user?.role === 'admin' || user?.id === event.organizerId) && (
-                    <button 
-                      onClick={() => handleDelete(event.id)} 
-                      className="absolute top-4 right-4 z-20 p-2 bg-white/90 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  )}
-
-                  <div className="h-48 overflow-hidden">
+                  <div className="relative h-64 overflow-hidden">
                     <img 
-                      src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800'} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                      alt={event.title} 
+                      src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4'} 
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                  </div>
-
-                  <div className="p-8 flex-grow">
-                    <div className="text-[10px] font-black text-blue-600 uppercase mb-2 tracking-widest">
+                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-600 shadow-sm">
                       {event.category}
                     </div>
-                    
-                    <h3 className="text-xl font-bold mb-4 line-clamp-2">{event.title}</h3>
+                  </div>
+                  
+                  <div className="p-8 flex flex-col flex-1">
+                    <h3 className="text-xl font-bold mb-4 line-clamp-2 text-gray-900">{event.title}</h3>
 
-                    <div className="space-y-4 mb-6">
-                      <div className="flex items-start gap-3 text-sm text-gray-500">
-                        <CalendarDays size={18} className="text-blue-500 mt-1" />
+                    <div className="space-y-3 mb-8 flex-1">
+                      <div className="flex items-start gap-3 text-sm text-gray-500 font-medium">
+                        <CalendarDays size={18} className="text-blue-500 shrink-0" />
                         {formatDateTimeDisplay(event.startDate, event.endDate)}
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-500">
-                        <MapPin size={18} className="text-blue-500" /> 
+                      <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                        <MapPin size={18} className="text-blue-500 shrink-0" /> 
                         {event.location}
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-500">
-                        <Users size={18} className="text-blue-500" /> 
+                      <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
+                        <Users size={18} className="text-blue-500 shrink-0" /> 
                         Max. {event.maxParticipants.toLocaleString('de-DE')} Personen
                       </div>
                     </div>
 
                     <button 
                       onClick={() => navigate(`/events/${event.id}`)} 
-                      className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+                      className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-gray-200"
                     >
                       Details ansehen
                     </button>

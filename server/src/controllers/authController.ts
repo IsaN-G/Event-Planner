@@ -3,8 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
 import CreateHttpError from "http-errors";
+import { JWT_SECRET } from "../config/env";
 
-const JWT_SECRET = process.env.JWT_SECRET!;
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {

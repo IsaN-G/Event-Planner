@@ -9,12 +9,13 @@ import AdminDashboard from './pages/AdminDashboard';
 import CreateEvent from './pages/CreateEvent'; 
 import EditEvent from './pages/EditEvent'; 
 import MyTickets from './pages/MyTickets'; 
+import Dashboard from './pages/Dashboard';
 
 function App() {
   const { user } = useAuth();
 
   const isAuthenticated = !!user;
-  const canCreateEvents = user?.role === 'admin' || user?.role === 'organizer';
+  const isOrganizerOrAdmin = user?.role === 'admin' || user?.role === 'organizer';
   const isAdmin = user?.role === 'admin';
 
   return (
@@ -22,52 +23,43 @@ function App() {
       <Navbar />
       <main className="min-h-screen bg-gray-50">
         <Routes>
-          
+          {/* Öffentliche Routen */}
           <Route path="/" element={<Events />} />
           <Route path="/events" element={<Events />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/events/:id" element={<EventDetail />} />
+
+          {/* User Routen (Tickets) */}
           <Route 
             path="/my-tickets" 
-            element={
-              isAuthenticated ? (
-                <MyTickets />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            } 
+            element={isAuthenticated ? <MyTickets /> : <Navigate to="/login" replace />} 
           />
+
+          {/* Organizer & Admin Routen */}
+          <Route 
+            path="/dashboard" 
+            element={isOrganizerOrAdmin ? <Dashboard /> : <Navigate to="/login" replace />} 
+          />
+          
           <Route 
             path="/create-event" 
-            element={
-              canCreateEvents ? (
-                <CreateEvent />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            } 
+            element={isOrganizerOrAdmin ? <CreateEvent /> : <Navigate to="/login" replace />} 
           />
+
+          {/* WICHTIG: Route an Dashboard-Link angepasst (/edit-event/:id) */}
           <Route 
-            path="/events/edit/:id" 
-            element={
-              canCreateEvents ? (
-                <EditEvent />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            } 
+            path="/edit-event/:id" 
+            element={isOrganizerOrAdmin ? <EditEvent /> : <Navigate to="/login" replace />} 
           />
+
+          {/* Admin exklusive Route */}
           <Route 
             path="/admin" 
-            element={
-              isAdmin ? (
-                <AdminDashboard />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            } 
+            element={isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
           />
+
+          {/* Catch-all: Unbekannte Seiten leiten zur Startseite */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

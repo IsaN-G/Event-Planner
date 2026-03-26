@@ -10,11 +10,20 @@ import {
 } from "../controllers/eventController";
 
 const router = Router();
+
+// 1. Öffentliche "Entdecken" Route (Alle Events)
 router.get("/", getAllEvents);
-router.get("/:id",getEventById); 
+
+// 2. Auth-geschützte Routen (Diese müssen VOR der :id Route stehen!)
+// Wir nutzen hier "/me" oder "/my-events"
+router.get("/me", authMiddleware, getMyEvents); 
+
+// 3. Einzel-Event-Ansicht (Die :id Route muss nach unten!)
+router.get("/:id", getEventById); 
+
+// 4. Aktionen, die einen Login erfordern
 router.use(authMiddleware); 
 router.post("/", createEvent);
-router.get("/me", getMyEvents);
 router.put("/:id", updateEvent);
 router.delete("/:id", deleteEvent);
 

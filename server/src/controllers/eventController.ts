@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import CreateHttpError from "http-errors";
 import { Event, User, Registration } from '../models';
 import { AuthRequest } from "../types/auth";
+import { Sequelize } from 'sequelize';
 
 export const getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -87,9 +88,21 @@ export const getMyEvents = async (req: AuthRequest, res: Response, next: NextFun
   try {
     const userId = req.user?.id;
     const events = await Event.findAll({ 
-      where: { organizerId: userId }, 
+      where: { organizerId: userId },
+      include: [{
+        model: Registration,
+        as: 'registrations', // Prüfe, ob dieser Alias in deinem Event-Model definiert ist!
+        attributes: [] // Wir wollen nicht alle Daten, nur die Anzahl
+      }],
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("registrations.id")), "bookingsCount"]
+        ]
+      },
+      group: ['Event.id'], // Wichtig beim Zählen!
       order: [["startDate", "ASC"]] 
     });
+    
     res.json({ success: true, events });
   } catch (error) {
     next(error);

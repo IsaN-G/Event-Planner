@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 
-// Definition des Event-Typs, um 'any' zu vermeiden
 interface Event {
   id: number;
   title: string;
@@ -25,29 +24,27 @@ interface Event {
   category: string;
   maxParticipants: number;
   imageUrl?: string;
-  bookingsCount?: number; // Anzahl der Buchungen vom Backend
+  bookingsCount?: number; 
 }
 
 export default function Dashboard() {
-  // Wir sagen React: myEvents ist eine Liste von Events
+
   const [myEvents, setMyEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
+  
   useEffect(() => {
     const fetchMyEvents = async () => {
       try {
         setLoading(true);
-        setError(''); // Fehler vor jedem Versuch zurücksetzen
+        setError('');
         const response = await api.get('/events/me');
-        
-        // Nur setzen, wenn die Antwort erfolgreich war
         setMyEvents(response.data.events || []);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Dashboard Fetch Error:", err);
-        // Nur einen Error anzeigen, wenn es kein 404 (nicht gefunden) ist
-        if (err.response?.status !== 404) {
+        const error = err as { response?: { status: number } };
+        if (error.response?.status !== 404) {
           setError('Verbindung zum Server fehlgeschlagen.');
         }
       } finally {
@@ -61,7 +58,6 @@ export default function Dashboard() {
     if (window.confirm('Möchtest du dieses Event wirklich unwiderruflich löschen?')) {
       try {
         await api.delete(`/events/${id}`);
-        // Sauberes Filtern des States nach dem Löschen
         setMyEvents(prev => prev.filter(e => e.id !== id));
       } catch (err: unknown) {
         console.error("Löschfehler:", err);
@@ -73,8 +69,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-6">
       <div className="max-w-6xl mx-auto">
-        
-        {/* Dashboard Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
           <div>
             <h1 className="text-4xl font-black text-gray-900 tracking-tighter mb-2 flex items-center gap-3">
@@ -94,14 +88,13 @@ export default function Dashboard() {
             <PlusCircle size={20} /> Event erstellen
           </button>
         </div>
-
-        {error && (
+            {error && (
           <div className="bg-red-50 border border-red-100 p-4 rounded-2xl text-red-600 font-bold mb-8 flex items-center gap-3">
             <AlertCircle size={20} /> {error}
           </div>
         )}
 
-        {/* Content Bereich */}
+   
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="animate-spin text-blue-600" size={48} />
@@ -128,7 +121,7 @@ export default function Dashboard() {
             {myEvents.map(event => (
               <div key={event.id} className="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 flex flex-col lg:flex-row items-center gap-8 hover:shadow-md transition-all group">
                 
-                {/* Bild-Vorschau */}
+             
                 <div className="relative shrink-0">
                   <img 
                     src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4'} 
@@ -140,7 +133,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Event Info */}
+           
                 <div className="flex-1 space-y-2 text-center lg:text-left min-w-0">
                   <h3 className="text-2xl font-black text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                     {event.title}
@@ -151,7 +144,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Teilnehmer-Metrik mit dem Users-Icon */}
                 <div className="bg-gray-50 px-8 py-4 rounded-[20px] border border-gray-100 min-w-[220px]">
                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center justify-center lg:justify-start gap-2">
                     <Users size={12} className="text-blue-500" /> Anmeldungen
@@ -169,7 +161,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* Buttons */}
+            
                 <div className="flex gap-2">
                   <button 
                     onClick={() => navigate(`/events/${event.id}`)}

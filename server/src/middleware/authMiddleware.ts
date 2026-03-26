@@ -2,8 +2,8 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AuthRequest, UserPayload } from "../types/auth";
 import CreateHttpError from "http-errors";
+import { JWT_SECRET } from "../config/env";
 
-const JWT_SECRET = process.env.JWT_SECRET || "mein_super_geheimer_schluessel";
 
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   PlusCircle, 
   MapPin, 
@@ -30,9 +30,8 @@ export default function Events() {
 
   const [events, setEvents] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtering, setFiltering] = useState(false);
   const [error, setError] = useState('');
-
-  // States für Suche und Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Alle');
 
@@ -65,15 +64,23 @@ export default function Events() {
     fetchEvents();
   }, []);
 
-  // Filter-Logik
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = 
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'Alle' || event.category === selectedCategory;
+  // Sofortige und performante Filterung
+  const filteredEvents = useMemo(() => {
+    setFiltering(true);
     
-    return matchesSearch && matchesCategory;
-  });
+    const result = events.filter(event => {
+      const matchesSearch = 
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = selectedCategory === 'Alle' || event.category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+    });
+
+    setTimeout(() => setFiltering(false), 150);
+    return result;
+  }, [events, searchTerm, selectedCategory]);
 
   const formatDateTimeDisplay = (startStr: string, endStr: string) => {
     const start = new Date(startStr);
@@ -94,112 +101,164 @@ export default function Events() {
       minute: '2-digit' 
     });
   
-    // Jetzt wird endStr (via endTime) benutzt!
     return `${date} | ${startTime} - ${endTime} Uhr`;
   };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900 py-12 px-6">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header-Bereich */}
-        <div className="flex justify-between items-end mb-12">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
           <div>
-            <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-2">
-              Entdecke <span className="text-blue-600">Events</span>
+            <h1 className="text-6xl font-black tracking-tighter text-gray-900 dark:text-white mb-3">
+              Entdecke <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">Events</span>
             </h1>
-            <p className="text-gray-500 font-medium">Finde spannende Erlebnisse in deiner Umgebung.</p>
+            <p className="text-xl text-gray-600 dark:text-gray-400 font-medium">
+              Finde dein nächstes unvergessliches Erlebnis
+            </p>
           </div>
+
           {(user?.role === 'organizer' || user?.role === 'admin') && (
             <button 
               onClick={() => navigate('/create-event')}
-              className="bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+              className="flex items-center gap-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white px-8 py-4 rounded-3xl font-semibold text-lg shadow-xl shadow-violet-500/30 transition-all active:scale-95"
             >
-              <PlusCircle size={20} /> Event erstellen
+              <PlusCircle size={24} />
+              Event erstellen
             </button>
           )}
         </div>
 
-        {/* Such- und Filterleiste */}
+        {/* Suche & Filter – Jetzt mit guter Lesbarkeit */}
         <div className="flex flex-col md:flex-row gap-4 mb-10">
+          
+          {/* Suchfeld */}
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-violet-500" size={22} />
             <input 
               type="text"
-              placeholder="Nach Titel oder Ort suchen..."
-              className="w-full pl-12 pr-4 py-4 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-medium outline-none"
+              placeholder="Event oder Ort suchen..."
+              className="w-full pl-14 pr-6 py-4 
+                         bg-white dark:bg-zinc-900 
+                         border border-gray-200 dark:border-zinc-700 
+                         rounded-3xl 
+                         focus:outline-none focus:ring-2 focus:ring-violet-500 
+                         text-lg 
+                         text-gray-900 dark:text-white 
+                         placeholder:text-gray-400 dark:placeholder:text-zinc-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <div className="relative min-w-[200px]">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+
+          {/* Kategorie-Filter */}
+          <div className="relative min-w-[240px]">
+            <Filter className="absolute left-5 top-1/2 -translate-y-1/2 text-violet-500" size={22} />
             <select 
-              className="w-full pl-12 pr-10 py-4 rounded-2xl border-none bg-white shadow-sm focus:ring-2 focus:ring-blue-500 font-bold text-gray-700 appearance-none cursor-pointer outline-none"
+              className="w-full pl-14 pr-10 py-4 
+                         bg-white dark:bg-zinc-900 
+                         border border-gray-200 dark:border-zinc-700 
+                         rounded-3xl 
+                         focus:outline-none focus:ring-2 focus:ring-violet-500 
+                         text-lg 
+                         text-gray-900 dark:text-white 
+                         cursor-pointer appearance-none"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
               {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option 
+                  key={cat} 
+                  value={cat}
+                  className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-white py-2"
+                >
+                  {cat}
+                </option>
               ))}
             </select>
           </div>
         </div>
 
+        {/* Filter-Feedback */}
+        {filtering && (
+          <div className="mb-6 flex items-center gap-2 text-violet-600 dark:text-violet-400 text-sm font-medium">
+            <Loader2 className="animate-spin" size={18} />
+            Filter wird angewendet...
+          </div>
+        )}
+
+        {/* Events Anzeige */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
-            <p className="text-gray-500 font-bold">Events werden geladen...</p>
+            <Loader2 className="animate-spin text-violet-600 mb-4" size={56} />
+            <p className="text-gray-500 font-semibold text-lg">Events werden geladen...</p>
           </div>
         ) : error ? (
-          <div className="bg-red-50 text-red-600 p-6 rounded-3xl border border-red-100 text-center">
+          <div className="bg-red-50 text-red-600 p-8 rounded-3xl text-center font-medium">
             {error}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredEvents.length === 0 ? (
-              <div className="col-span-full text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
-                <p className="text-gray-400 font-medium">Keine Events gefunden, die deiner Suche entsprechen.</p>
+              <div className="col-span-full text-center py-20 bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800">
+                <p className="text-2xl text-gray-400 font-medium">
+                  Keine Events für diese Auswahl gefunden.
+                </p>
               </div>
             ) : (
               filteredEvents.map((event) => (
                 <div 
                   key={event.id} 
-                  className="group bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col"
+                  onClick={() => navigate(`/events/${event.id}`)}
+                  className="group bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer border border-gray-100 dark:border-zinc-800"
                 >
-                  {/* Bild-Bereich */}
-                  <div className="relative h-64 overflow-hidden">
+                  {/* Bild mit Overlay */}
+                  <div className="relative h-80 overflow-hidden">
                     <img 
                       src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4'} 
                       alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-600 shadow-sm">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+                    
+                    {/* Category Badge */}
+                    <div className="absolute top-5 left-5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md px-4 py-1.5 rounded-2xl text-xs font-black uppercase tracking-widest text-violet-600 shadow">
                       {event.category}
                     </div>
-                  </div>
-                  
-                  {/* Content-Bereich */}
-                  <div className="p-8 flex flex-col flex-1">
-                    <h3 className="text-xl font-bold mb-4 line-clamp-2 text-gray-900">{event.title}</h3>
 
-                    <div className="space-y-3 mb-8 flex-1">
-                      <div className="flex items-start gap-3 text-sm text-gray-500 font-medium">
-                        <CalendarDays size={18} className="text-blue-500 shrink-0" />
-                        {formatDateTimeDisplay(event.startDate, event.endDate)}
+                    {/* Date Badge */}
+                    <div className="absolute top-5 right-5 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md px-4 py-2 rounded-2xl text-center shadow">
+                      <p className="text-xs font-black text-gray-500">AB</p>
+                      <p className="text-xl font-black text-gray-900 dark:text-white leading-none">
+                        {new Date(event.startDate).toLocaleDateString('de-DE', { day: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-8">
+                    <h3 className="text-2xl font-black text-gray-900 dark:text-white leading-tight mb-4 line-clamp-2 group-hover:text-violet-600 transition-colors">
+                      {event.title}
+                    </h3>
+
+                    <div className="space-y-3 mb-8 text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-3">
+                        <CalendarDays size={20} className="text-violet-500" />
+                        <span className="font-medium">{formatDateTimeDisplay(event.startDate, event.endDate)}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
-                        <MapPin size={18} className="text-blue-500 shrink-0" /> 
-                        {event.location}
+                      <div className="flex items-center gap-3">
+                        <MapPin size={20} className="text-violet-500" />
+                        <span className="font-medium">{event.location}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-500 font-medium">
-                        <Users size={18} className="text-blue-500 shrink-0" /> 
-                        Max. {event.maxParticipants.toLocaleString('de-DE')} Personen
+                      <div className="flex items-center gap-3">
+                        <Users size={20} className="text-violet-500" />
+                        <span className="font-medium">Bis zu {event.maxParticipants.toLocaleString('de-DE')} Personen</span>
                       </div>
                     </div>
 
                     <button 
-                      onClick={() => navigate(`/events/${event.id}`)} 
-                      className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-blue-600 transition-colors shadow-lg shadow-gray-200"
+                      className="w-full py-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-2xl font-semibold text-lg shadow-lg shadow-violet-500/30 group-hover:shadow-xl transition-all active:scale-95"
                     >
                       Details ansehen
                     </button>

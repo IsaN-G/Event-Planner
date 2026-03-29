@@ -180,6 +180,7 @@ export default function CreateEvent() {
                 <option value="Hybridveranstaltungen">Hybridveranstaltungen</option>
                 <option value="Pop-up-Events">Pop-up-Events</option>
                 <option value="Kinder-Event">Kinder-Event</option>
+                <option value="Reisen">Reisen</option>
                 
               </select>
             </div>

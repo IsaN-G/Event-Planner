@@ -2,14 +2,33 @@
 
 /* Basis-Stile für den modernen Look */
 @theme {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --color-primary: #6d28d9;     /* tiefes Violett – energisch */
+  --color-accent: #ec4899;      /* Pink/Magenta für Highlights */
+  --color-secondary: #f43f5e;   /* Rose als warmer Akzent */
+  --color-glass: rgba(255, 255, 255, 0.75);   /* für Light Glass */
+  --color-glass-dark: rgba(15, 23, 42, 0.85); /* für Dark Glass */
 }
-
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-color: #f9fafb; /* Entspricht bg-gray-50 */
     color: #111827; /* Entspricht text-gray-900 */
+  }
+}
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Neue Gradient- und Glass-Styles */
+  .glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+  }
+
+  .dark .glass {
+    background: rgba(15, 23, 42, 0.85);
   }
 }

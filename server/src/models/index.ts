@@ -15,13 +15,12 @@ Event.belongsTo(User, {
   as: "organizer",
 });
 
-// Ein Event hat viele Registrierungen
+
 Event.hasMany(Registration, { 
   foreignKey: 'eventId', 
   as: 'registrations' 
 });
 
-// Eine Registrierung gehört zu einem Event
 Registration.belongsTo(Event, { 
   foreignKey: 'eventId', 
   as: 'event' 

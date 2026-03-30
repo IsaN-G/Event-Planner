@@ -1,12 +1,20 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { ShieldCheck, UserCog, Loader2 } from 'lucide-react';
+import { 
+  ShieldCheck, 
+  Loader2, 
+  Users 
+} from 'lucide-react';
 
 interface UserType {
   id: number;
   username: string;
   email: string;
   role: string;
+  createdAt?: string;
+  lastLogin?: string;
+  bookedEventsCount?: number;
+  isActive?: boolean;
 }
 
 export default function AdminDashboard() {
@@ -17,13 +25,10 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       const res = await api.get('/admin/users');
-     
-      const userData = res.data.users || res.data; 
+      const userData = res.data.users || res.data || [];
       setUsers(Array.isArray(userData) ? userData : []);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error("Fehler beim Laden:", err.message);
-      }
+    } catch (err) {
+      console.error("Fehler beim Laden der Benutzer:", err);
     } finally {
       setLoading(false);
     }
@@ -34,80 +39,139 @@ export default function AdminDashboard() {
   }, []);
 
   const toggleRole = async (user: UserType) => {
-    
     const newRole = user.role === 'user' ? 'organizer' : 'user';
+    
     try {
       await api.put(`/admin/users/${user.id}/role`, { role: newRole });
-      await fetchUsers(); 
+      await fetchUsers();
     } catch (err) {
       console.error("Fehler beim Rollen-Update:", err);
       alert("Fehler beim Ändern der Rolle");
     }
   };
 
-  if (loading) return (
-    <div className="flex justify-center p-20">
-      <Loader2 className="animate-spin text-blue-600" size={40} />
-    </div>
-  );
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '—';
+    return new Date(dateString).toLocaleDateString('de-DE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Loader2 className="animate-spin text-violet-500" size={60} />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-5xl mx-auto p-10 animate-in fade-in duration-500">
-      <h1 className="text-4xl font-black mb-10 flex items-center gap-4 tracking-tighter">
-        <ShieldCheck className="text-blue-600" size={40} /> ADMIN <span className="text-blue-600">PANEL</span>
-      </h1>
-      
-      <div className="bg-white rounded-[2.5rem] shadow-sm overflow-hidden border border-gray-100">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-50/50 text-gray-400 text-[10px] uppercase tracking-[0.2em]">
-            <tr>
-              <th className="p-8 font-black">Benutzer</th>
-              <th className="p-8 font-black">Berechtigung</th>
-              <th className="p-8 font-black text-right">Verwalten</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {users.length > 0 ? (
-              users.map((u: UserType) => (
-                <tr key={u.id} className="hover:bg-blue-50/30 transition-colors group">
-                  <td className="p-8">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-gray-900 text-lg">{u.username}</span>
-                      <span className="text-xs text-gray-400 font-medium">{u.email}</span>
+    <div className="min-h-screen bg-zinc-950 py-12 px-6">
+      <div className="max-w-7xl mx-auto">
+        
+        <div className="flex items-center gap-5 mb-12">
+          <div className="p-4 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-2xl">
+            <ShieldCheck size={40} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-5xl font-black tracking-tighter text-white">Admin Panel</h1>
+            <p className="text-gray-400 text-xl mt-1">Benutzerverwaltung</p>
+          </div>
+        </div>
+
+        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
+          <div className="p-8 border-b border-zinc-800 flex items-center justify-between bg-zinc-950">
+            <div className="flex items-center gap-3">
+              <Users size={28} className="text-violet-400" />
+              <h2 className="text-2xl font-semibold text-white">Benutzerliste</h2>
+            </div>
+            <div className="text-sm text-gray-400">
+              {users.length} Benutzer insgesamt
+            </div>
+          </div>
+
+          {users.length === 0 ? (
+            <div className="p-20 text-center text-gray-400">
+              Keine Benutzer gefunden.
+            </div>
+          ) : (
+            <div className="divide-y divide-zinc-800">
+              {users.map((user) => (
+                <div 
+                  key={user.id} 
+                  className="p-8 hover:bg-zinc-800/60 transition-colors group flex flex-col lg:flex-row lg:items-center gap-8"
+                >
+                  {/* User Info */}
+                  <div className="flex-1 flex items-center gap-5">
+                    <div className="w-14 h-14 bg-zinc-700 rounded-2xl flex items-center justify-center text-2xl font-bold text-white">
+                      {user.username.charAt(0).toUpperCase()}
                     </div>
-                  </td>
-                  <td className="p-8">
-                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${
-                      u.role === 'admin' ? 'bg-purple-100 text-purple-600' : 
-                      u.role === 'organizer' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'
+                    <div>
+                      <p className="text-xl font-semibold text-white">{user.username}</p>
+                      <p className="text-gray-400 text-sm">{user.email}</p>
+                    </div>
+                  </div>
+
+                  {/* Zusätzliche Infos */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6 text-sm">
+                    <div>
+                      <p className="text-gray-500">Registriert</p>
+                      <p className="text-white font-medium mt-1">{formatDate(user.createdAt)}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-500">Letzter Login</p>
+                      <p className="text-white font-medium mt-1">{formatDate(user.lastLogin)}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-500">Gebuchte Events</p>
+                      <p className="text-white font-semibold mt-1">
+                        {user.bookedEventsCount ?? 0}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-gray-500">Status</p>
+                      <div className={`inline-flex items-center gap-2 mt-1 px-4 py-1 rounded-full text-xs font-medium ${
+                        user.isActive 
+                          ? 'bg-emerald-500/20 text-emerald-400' 
+                          : 'bg-red-500/20 text-red-400'
+                      }`}>
+                        <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                        {user.isActive ? 'Aktiv' : 'Inaktiv'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rolle & Aktion */}
+                  <div className="flex items-center gap-4 lg:ml-auto">
+                    <span className={`px-6 py-2.5 rounded-2xl text-sm font-bold uppercase tracking-widest ${
+                      user.role === 'admin' 
+                        ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' 
+                        : user.role === 'organizer' 
+                        ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' 
+                        : 'bg-zinc-700 text-gray-300'
                     }`}>
-                      {u.role}
+                      {user.role.toUpperCase()}
                     </span>
-                  </td>
-                  <td className="p-8 text-right">
-                    {u.role !== 'admin' ? (
+
+                    {user.role !== 'admin' && (
                       <button 
-                        onClick={() => toggleRole(u)} 
-                        className="p-3 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-100 rounded-2xl transition-all active:scale-90"
-                        title="Rolle wechseln"
+                        onClick={() => toggleRole(user)}
+                        className="px-6 py-3 bg-zinc-800 hover:bg-violet-950 hover:text-violet-400 rounded-2xl transition-all text-sm font-medium"
                       >
-                        <UserCog size={22} />
+                        Rolle ändern
                       </button>
-                    ) : (
-                      <span className="text-[10px] font-bold text-gray-300 mr-2 uppercase tracking-tighter">Systemgeschützt</span>
                     )}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={3} className="p-20 text-center text-gray-400 font-medium italic">
-                  Keine Benutzer gefunden.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

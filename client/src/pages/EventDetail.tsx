@@ -28,7 +28,6 @@ export default function EventDetail() {
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
 
-
   const canEdit = user && (user.role === 'admin' || user.id === event?.organizerId);
 
   useEffect(() => {
@@ -77,119 +76,133 @@ export default function EventDetail() {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-blue-600" size={40} />
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <Loader2 className="animate-spin text-violet-500" size={50} />
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div className="text-center p-20 font-bold text-xl text-gray-600">
-        Event nicht gefunden.
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">
+        <div className="text-center">
+          <p className="text-2xl font-bold">Event nicht gefunden.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
-    
-      <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Back Button */}
+      <div className="max-w-5xl mx-auto px-6 pt-8 pb-4">
         <button 
           onClick={() => navigate(-1)} 
-          className="flex items-center gap-2 text-gray-400 hover:text-blue-600 font-bold transition-all group"
+          className="flex items-center gap-3 text-gray-400 hover:text-white font-medium transition-all group"
         >
-          <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> 
+          <ArrowLeft size={22} className="group-hover:-translate-x-1 transition-transform" /> 
           Zurück zur Übersicht
         </button>
-
-        {canEdit && (
-          <button 
-            onClick={() => navigate(`/events/edit/${event.id}`)}
-            className="flex items-center gap-2 bg-yellow-100 text-yellow-700 px-5 py-2.5 rounded-2xl font-bold hover:bg-yellow-200 transition-all border border-yellow-200 shadow-sm"
-          >
-            <Pencil size={18} />
-            Event bearbeiten
-          </button>
-        )}
       </div>
 
-      <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-gray-50">
-        <img 
-          src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800'} 
-          className="w-full h-[400px] object-cover" 
-          alt={event.title} 
-        />
-        
-        <div className="p-12">
-          <div className="flex justify-between items-start mb-6">
-             <h1 className="text-4xl font-black tracking-tighter">{event.title}</h1>
-             <span className="bg-blue-100 text-blue-600 px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest">
+      <div className="max-w-5xl mx-auto px-6 pb-12">
+        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-zinc-800">
+          {/* Hero Image */}
+          <div className="relative h-[520px]">
+            <img 
+              src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1200'} 
+              className="w-full h-full object-cover" 
+              alt={event.title} 
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent" />
+
+            {/* Category & Edit Button */}
+            <div className="absolute top-8 left-8 flex items-center gap-4">
+              <div className="bg-white/10 backdrop-blur-md px-5 py-2 rounded-2xl text-sm font-bold uppercase tracking-widest border border-white/20">
                 {event.category || 'Event'}
-             </span>
+              </div>
+              
+              {canEdit && (
+                <button 
+                  onClick={() => navigate(`/edit-event/${event.id}`)}
+                  className="flex items-center gap-2 bg-white/10 backdrop-blur-md hover:bg-white/20 px-5 py-2 rounded-2xl font-medium transition-all border border-white/20"
+                >
+                  <Pencil size={18} />
+                  Bearbeiten
+                </button>
+              )}
+            </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-3xl">
-              <CalendarDays className="text-blue-600 mt-1" size={24} />
-              <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">
-                  Datum & Zeit
+
+          {/* Content */}
+          <div className="relative -mt-12 bg-zinc-900 rounded-t-3xl p-10 md:p-12 border-t border-zinc-700">
+            <h1 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mb-8">
+              {event.title}
+            </h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+              <div className="bg-zinc-800/50 backdrop-blur-md rounded-3xl p-6 border border-zinc-700">
+                <CalendarDays className="text-violet-400 mb-3" size={28} />
+                <p className="text-sm text-gray-400">Datum & Uhrzeit</p>
+                <p className="font-semibold text-lg mt-1">
+                  {new Date(event.startDate).toLocaleDateString('de-DE', { 
+                    weekday: 'long', 
+                    day: '2-digit', 
+                    month: 'long' 
+                  })}
                 </p>
-                <p className="font-bold text-lg">
-                  {new Date(event.startDate).toLocaleDateString('de-DE')} •{' '}
+                <p className="text-violet-400">
                   {new Date(event.startDate).toLocaleTimeString('de-DE', { 
                     hour: '2-digit', 
                     minute: '2-digit' 
-                  })} Uhr
+                  })} – {new Date(event.endDate).toLocaleTimeString('de-DE', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
                 </p>
               </div>
-            </div>
 
-            <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-3xl">
-              <MapPin className="text-blue-600 mt-1" size={24} />
-              <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">
-                  Location
-                </p>
-                <p className="font-bold text-lg">{event.location}</p>
+              <div className="bg-zinc-800/50 backdrop-blur-md rounded-3xl p-6 border border-zinc-700">
+                <MapPin className="text-violet-400 mb-3" size={28} />
+                <p className="text-sm text-gray-400">Location</p>
+                <p className="font-semibold text-lg mt-1">{event.location}</p>
               </div>
-            </div>
 
-            <div className="flex items-start gap-4 p-6 bg-gray-50 rounded-3xl md:col-span-2">
-              <Users className="text-blue-600 mt-1" size={24} />
-              <div>
-                <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">
-                  Kapazität
-                </p>
-                <p className="font-bold text-lg">
+              <div className="bg-zinc-800/50 backdrop-blur-md rounded-3xl p-6 border border-zinc-700">
+                <Users className="text-violet-400 mb-3" size={28} />
+                <p className="text-sm text-gray-400">Kapazität</p>
+                <p className="font-semibold text-lg mt-1">
                   Max. {event.maxParticipants.toLocaleString('de-DE')} Teilnehmer
                 </p>
               </div>
             </div>
-          </div>
 
-          <p className="text-gray-600 leading-relaxed mb-12 text-lg whitespace-pre-line">
-            {event.description}
-          </p>
-
-          {booked ? (
-            <div className="w-full py-6 bg-green-50 text-green-600 rounded-3xl flex items-center justify-center gap-3 font-black uppercase border border-green-200">
-              <CheckCircle2 size={24} /> Du bist bereits angemeldet!
+            <div className="prose prose-invert max-w-none mb-12">
+              <p className="text-lg leading-relaxed text-gray-300 whitespace-pre-line">
+                {event.description}
+              </p>
             </div>
-          ) : (
-            <button 
-              onClick={handleBooking} 
-              disabled={booking} 
-              className="w-full py-6 bg-blue-600 hover:bg-blue-700 text-white rounded-3xl font-black text-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {booking ? (
-                <Loader2 className="animate-spin mx-auto" size={28} />
-              ) : (
-                'JETZT TICKET SICHERN'
-              )}
-            </button>
-          )}
+
+            {/* Booking Button */}
+            {booked ? (
+              <div className="w-full py-6 bg-emerald-600/20 border border-emerald-500 text-emerald-400 rounded-3xl flex items-center justify-center gap-4 font-semibold text-xl">
+                <CheckCircle2 size={32} />
+                Du bist bereits angemeldet!
+              </div>
+            ) : (
+              <button 
+                onClick={handleBooking} 
+                disabled={booking} 
+                className="w-full py-7 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-violet-600 hover:brightness-110 text-white rounded-3xl font-black text-2xl tracking-wider transition-all active:scale-[0.98] disabled:opacity-70 shadow-2xl shadow-violet-500/50"
+              >
+                {booking ? (
+                  <Loader2 className="animate-spin mx-auto" size={32} />
+                ) : (
+                  'JETZT TICKET SICHERN'
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

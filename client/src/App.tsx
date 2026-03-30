@@ -10,6 +10,7 @@ import CreateEvent from './pages/CreateEvent';
 import EditEvent from './pages/EditEvent'; 
 import MyTickets from './pages/MyTickets'; 
 import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
 
 function App() {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/events/:id" element={<EventDetail />} />
+
 
           {/* User Routen (Tickets) */}
           <Route 
@@ -52,6 +54,11 @@ function App() {
             path="/edit-event/:id" 
             element={isOrganizerOrAdmin ? <EditEvent /> : <Navigate to="/login" replace />} 
           />
+<Route 
+  path="/analytics" 
+  element={isOrganizerOrAdmin ? <Analytics /> : <Navigate to="/login" replace />} 
+/>
+
 
           {/* Admin exklusive Route */}
           <Route 

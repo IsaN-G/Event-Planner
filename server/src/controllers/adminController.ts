@@ -1,26 +1,42 @@
 import { Response, NextFunction } from "express";
-import { User } from "../models"; 
+import { User, Registration } from "../models"; 
 import { AuthRequest } from "../types/auth";
 import CreateHttpError from "http-errors";
-
 
 export const getAllUsers = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const users = await User.findAll({
-      attributes: { exclude: ['password'] }, 
-      order: [['username', 'ASC']]
+      attributes: ['id', 'username', 'email', 'role', 'createdAt'],
+      include: [
+        {
+          model: Registration,
+          as: 'registrations',           // ← Muss exakt mit dem Alias oben übereinstimmen
+          attributes: [],
+          required: false
+        }
+      ],
+      group: ['User.id'],
+      order: [['createdAt', 'DESC']]
     });
-    
+
+    const usersWithData = users.map((user: any) => {
+      const plainUser = user.get({ plain: true });
+      return {
+        ...plainUser,
+        bookedEventsCount: user.registrations ? user.registrations.length : 0,
+        isActive: user.role === 'admin', 
+        lastLogin: null
+      };
+    });
+
     res.json({
       success: true,
-      users
+      users: usersWithData
     });
   } catch (error) {
     next(error);
   }
 };
-
-
 export const updateUserRole = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
    

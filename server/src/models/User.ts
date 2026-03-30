@@ -2,6 +2,7 @@ import { DataTypes, Model, CreationOptional, NonAttribute } from "sequelize";
 import sequelize from "../config/sequelize";
 import bcrypt from "bcryptjs";
 import Event from './Event'; 
+import Registration from './Registration';
 
 class User extends Model {
   declare id: CreationOptional<number>;
@@ -10,8 +11,8 @@ class User extends Model {
   declare password: string;
   declare role: CreationOptional<"admin" | "user" | "organizer">;
 
- 
-  declare bookedEvents?: NonAttribute<Event[]>; 
+  declare registrations?: NonAttribute<any[]>;   // für booked events count
+  declare bookedEvents?: NonAttribute<any[]>;    // falls du diesen Alias nutzt
 }
 
 User.init({

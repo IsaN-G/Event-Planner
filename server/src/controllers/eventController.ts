@@ -144,6 +144,68 @@ export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFun
     next(error);
   }
 };
+export const getEventAnalytics = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const organizerId = req.user?.id;
 
+    // Gesamtstatistiken
+    const totalEvents = await Event.count({ where: { organizerId } });
+    const totalBookings = await Registration.count({
+      include: [{ model: Event, where: { organizerId }, attributes: [] }]
+    });
+
+    const eventsWithBookings = await Event.findAll({
+      where: { organizerId },
+      include: [{
+        model: Registration,
+        as: 'registrations',
+        attributes: []
+      }],
+      attributes: {
+        include: [
+          [Sequelize.fn('COUNT', Sequelize.col('registrations.id')), 'bookingsCount']
+        ]
+      },
+      group: ['Event.id'],
+      order: [[Sequelize.col('bookingsCount'), 'DESC']]
+    });
+
+    const topEvents = eventsWithBookings.slice(0, 5).map((e: any) => ({
+      id: e.id,
+      title: e.title,
+      bookingsCount: parseInt(e.get('bookingsCount') || '0'),
+      maxParticipants: e.maxParticipants,
+      occupancy: Math.round(((e.get('bookingsCount') || 0) / e.maxParticipants) * 100),
+      category: e.category
+    }));
+
+    // Kategorie-Statistiken
+    const categoryStats = await Event.findAll({
+      where: { organizerId },
+      attributes: [
+        'category',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
+      ],
+      group: ['category']
+    });
+
+    res.json({
+      success: true,
+      totalEvents,
+      totalBookings,
+      averageOccupancy: totalEvents > 0 
+        ? Math.round((topEvents.reduce((sum, e) => sum + e.occupancy, 0) / topEvents.length) || 0)
+        : 0,
+      topEvents,
+      categoryStats: categoryStats.map((c: any) => ({
+        category: c.category,
+        count: parseInt(c.get('count')),
+        bookings: 0 // kann später erweitert werden
+      }))
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 

@@ -1,24 +1,21 @@
-import { Sequelize } from "sequelize";
-import pg from "pg";
-import { DB_CONFIG } from "./env";
+import { Sequelize } from 'sequelize';
 
-const sequelize = new Sequelize(
-  DB_CONFIG.name,
-  DB_CONFIG.user,
-  DB_CONFIG.pass,
-  {
-    host: DB_CONFIG.host,
-    port: DB_CONFIG.port,
-    dialect: "postgres",
-    dialectModule: pg,
-    logging: DB_CONFIG.isDev,
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
-  }
-);
+const dbUrl = process.env.DATABASE_URL;
+
+if (!dbUrl) {
+  console.error("❌ Fehler: DATABASE_URL ist nicht definiert!");
+  process.exit(1);
+}
+
+const sequelize = new Sequelize(process.env.DATABASE_URL!, {
+  dialect: 'postgres',
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false 
+    }
+  },
+  logging: false 
+});
 
 export default sequelize;

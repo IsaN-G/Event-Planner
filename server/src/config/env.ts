@@ -1,18 +1,12 @@
-import * as dotenv from 'dotenv';
-import path from 'path';
-
-// Lädt die .env Datei aus dem Root-Verzeichnis des Backends
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Wir brauchen hier kein dotenv.config() mehr, da Bun das automatisch macht.
 
 export const JWT_SECRET = process.env.JWT_SECRET || "fallback_geheimnis_nur_fuer_dev";
-export const PORT = process.env.PORT || 4000;
+export const PORT = Number(process.env.PORT) || 4000;
 
 export const DB_CONFIG = {
-  name: process.env.DB_NAME as string,
-  user: process.env.DB_USER as string,
-  pass: process.env.DB_PASSWORD as string,
-  host: process.env.DB_HOST as string,
-  port: Number(process.env.DB_PORT) || 5432,
+  // Wir nutzen primär die DATABASE_URL in der sequelize.ts, 
+  // aber lassen diese Felder als Backup hier:
+  url: process.env.DATABASE_URL as string,
   isDev: process.env.NODE_ENV === "development"
 };
 

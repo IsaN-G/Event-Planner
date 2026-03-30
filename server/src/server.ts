@@ -7,7 +7,7 @@ import authRoutes from "./routes/authRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import adminRoutes from './routes/adminRoutes';
 import bookingRoutes from './routes/bookingRoutes'; 
-
+console.log("DB-URL vorhanden:", !!process.env.DATABASE_URL);
 const app = express();
 const port = process.env.PORT || 4000;
 
@@ -51,7 +51,7 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log("✅ Datenbankverbindung erfolgreich!");
     await sequelize.sync({ alter: true }); 
-    console.log("✅ Datenbank-Tabellen wurden NEU erstellt (Reset erfolgt).");
+    console.log("✅ Datenbank-Tabellen synchronisiert (Updates übernommen).");
 
     app.listen(port, () => {
       console.log(`🚀 Server läuft auf http://localhost:${port}`);

@@ -34,38 +34,18 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
-
-    console.log("🔍 Login Versuch für:", email);   
-
-    if (!email || !password) {
-      throw CreateHttpError(400, "Email und Passwort erforderlich");
-    }
-
     const user = await User.findOne({ where: { email } });
-    console.log("👤 User gefunden:", !!user);       
 
-    if (!user) {
-      console.log("❌ User nicht gefunden");
-      throw CreateHttpError(401, "Ungültige Zugangsdaten");
-    }
-
-    console.log("📝 Gespeichertes Passwort (Hash):", user.password?.substring(0, 30) + "..."); 
+    if (!user) throw CreateHttpError(401, "Ungültige Zugangsdaten");
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log("🔑 bcrypt.compare Ergebnis:", isPasswordValid);   
+    if (!isPasswordValid) throw CreateHttpError(401, "Ungültige Zugangsdaten");
 
-    if (!isPasswordValid) {
-      console.log("❌ Passwort falsch");
-      throw CreateHttpError(401, "Ungültige Zugangsdaten");
-    }
+    // ECHTES TRACKING: Zeitstempel bei jedem Login setzen
+    await user.update({ lastLogin: new Date() });
 
     const token = jwt.sign(
-      { 
-        id: user.id,        
-        username: user.username, 
-        email: user.email, 
-        role: user.role 
-      },
+      { id: user.id, username: user.username, email: user.email, role: user.role },
       JWT_SECRET,
       { expiresIn: "24h" }
     );
@@ -73,8 +53,28 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     res.json({
       message: "Login erfolgreich",
       token,
-      user: { id: user.id, username: user.username, email: user.email, role: user.role }
+      user: { 
+        id: user.id, 
+        username: user.username, 
+        email: user.email, 
+        role: user.role,
+        lastLogin: user.lastLogin // mitsenden
+      }
     });
+  } catch (error) { next(error); }
+};
+// NEU: Heartbeat-Funktion, um den Online-Status aktuell zu halten
+export const updateHeartbeat = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.id; // Aus dem Auth-Middleware Token
+    if (!userId) return res.status(401).json({ message: "Nicht autorisiert" });
+
+    await User.update(
+      { lastLogin: new Date() }, 
+      { where: { id: userId } }
+    );
+
+    res.json({ success: true, message: "Status aktualisiert" });
   } catch (error) {
     next(error);
   }

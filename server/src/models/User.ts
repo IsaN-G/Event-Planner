@@ -10,33 +10,19 @@ class User extends Model {
   declare email: string;
   declare password: string;
   declare role: CreationOptional<"admin" | "user" | "organizer">;
+  declare lastLogin: CreationOptional<Date | null>; // NEU hinzugefügt
 
-  declare registrations?: NonAttribute<any[]>;   // für booked events count
-  declare bookedEvents?: NonAttribute<any[]>;    // falls du diesen Alias nutzt
+  declare registrations?: NonAttribute<any[]>;
+  declare bookedEvents?: NonAttribute<any[]>;
 }
 
 User.init({
-
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-  username: { 
-    type: DataTypes.STRING, 
-    allowNull: false,
-    validate: { len: [3, 30] }
-  },
-  email: { 
-    type: DataTypes.STRING, 
-    allowNull: false, 
-    unique: true,
-    validate: { isEmail: true }
-  },
-  password: { 
-    type: DataTypes.STRING, 
-    allowNull: false 
-  },
-  role: { 
-    type: DataTypes.STRING, 
-    defaultValue: "user" 
-  }
+  username: { type: DataTypes.STRING, allowNull: false, validate: { len: [3, 30] } },
+  email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: true } },
+  password: { type: DataTypes.STRING, allowNull: false },
+  role: { type: DataTypes.STRING, defaultValue: "user" },
+  lastLogin: { type: DataTypes.DATE, allowNull: true } // NEU hinzugefügt
 }, {
   sequelize,
   modelName: "User",

@@ -1,3 +1,4 @@
+// eventController.ts
 import { Request, Response, NextFunction } from "express";
 import CreateHttpError from "http-errors";
 import { Event, User, Registration } from '../models';
@@ -14,15 +15,19 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
         attributes: ["id", "username"],
       }],
     });
+
     res.json({ success: true, count: events.length, events });
   } catch (error) {
     next(error);
   }
 };
+
 export const createEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { title, description, startDate, endDate, location, maxParticipants, imageUrl, category } = req.body;
     const organizerId = req.user?.id;
+
+    if (!organizerId) throw CreateHttpError(401, "Nicht autorisiert");
 
     if (new Date(startDate) >= new Date(endDate)) {
       throw CreateHttpError(400, "Das Event muss nach dem Start enden.");
@@ -34,13 +39,17 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       location,
-      maxParticipants: maxParticipants || 100,
+      maxParticipants: Number(maxParticipants) || 100,
       imageUrl: imageUrl || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800",
       category: category || "Allgemein",
       organizerId,
     });
 
-    res.status(201).json({ success: true, event });
+    const createdEvent = await Event.findByPk(event.id, {
+      include: [{ model: User, as: "organizer", attributes: ["id", "username"] }],
+    });
+
+    res.status(201).json({ success: true, message: "Event erstellt", event: createdEvent });
   } catch (error) {
     next(error);
   }
@@ -52,11 +61,7 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
     const userId = req.user?.id;
 
     const event = await Event.findByPk(eventId, {
-      include: [{ 
-        model: User, 
-        as: 'organizer', 
-        attributes: ['id', 'username'] 
-      }]
+      include: [{ model: User, as: 'organizer', attributes: ['id', 'username'] }]
     });
 
     if (!event) throw CreateHttpError(404, "Event nicht gefunden.");
@@ -66,10 +71,8 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
 
     let isBooked = false;
     if (userId) {
-      const existingRegistration = await Registration.findOne({
-        where: { userId, eventId }
-      });
-      isBooked = !!existingRegistration;
+      const existing = await Registration.findOne({ where: { userId, eventId } });
+      isBooked = !!existing;
     }
 
     res.json({
@@ -87,23 +90,24 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
 export const getMyEvents = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
-    const events = await Event.findAll({ 
+    if (!userId) throw CreateHttpError(401, "Nicht autorisiert");
+
+    const events = await Event.findAll({
       where: { organizerId: userId },
-      include: [{
-        model: Registration,
-        as: 'registrations', // Prüfe, ob dieser Alias in deinem Event-Model definiert ist!
-        attributes: [] // Wir wollen nicht alle Daten, nur die Anzahl
-      }],
+      include: [{ model: Registration, as: 'registrations', attributes: [] }],
       attributes: {
-        include: [
-          [Sequelize.fn("COUNT", Sequelize.col("registrations.id")), "bookingsCount"]
-        ]
+        include: [[Sequelize.fn("COUNT", Sequelize.col("registrations.id")), "bookingsCount"]]
       },
-      group: ['Event.id'], // Wichtig beim Zählen!
-      order: [["startDate", "ASC"]] 
+      group: ['Event.id'],
+      order: [["startDate", "ASC"]]
     });
-    
-    res.json({ success: true, events });
+
+    const formatted = events.map((e: any) => ({
+      ...e.get({ plain: true }),
+      bookingsCount: parseInt(e.get('bookingsCount') || '0')
+    }));
+
+    res.json({ success: true, events: formatted });
   } catch (error) {
     next(error);
   }
@@ -111,17 +115,24 @@ export const getMyEvents = async (req: AuthRequest, res: Response, next: NextFun
 
 export const updateEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const eventId = Number(req.params.id);
+    const eventId = String(req.params.id);
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
     const event = await Event.findByPk(eventId);
     if (!event) throw CreateHttpError(404, "Event nicht gefunden");
 
-    const userId = req.user?.id;
-    if (event.organizerId !== userId && req.user?.role !== 'admin') {
+    if (event.organizerId !== Number(userId) && userRole !== 'admin') {
       throw CreateHttpError(403, "Keine Berechtigung");
     }
 
     await event.update(req.body);
-    res.json({ success: true, message: "Aktualisiert", event });
+
+    const updated = await Event.findByPk(eventId, {
+      include: [{ model: User, as: "organizer", attributes: ["id", "username"] }]
+    });
+
+    res.json({ success: true, message: "Event aktualisiert", event: updated });
   } catch (error) {
     next(error);
   }
@@ -129,26 +140,29 @@ export const updateEvent = async (req: AuthRequest, res: Response, next: NextFun
 
 export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const eventId = Number(req.params.id);
+    const eventId = String(req.params.id);
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
     const event = await Event.findByPk(eventId);
     if (!event) throw CreateHttpError(404, "Event nicht gefunden");
 
-    const userId = req.user?.id;
-    if (event.organizerId !== userId && req.user?.role !== 'admin') {
+    if (event.organizerId !== Number(userId) && userRole !== 'admin') {
       throw CreateHttpError(403, "Keine Berechtigung");
     }
 
     await event.destroy();
-    res.json({ success: true, message: "Gelöscht" });
+    res.json({ success: true, message: "Event gelöscht" });
   } catch (error) {
     next(error);
   }
 };
+
 export const getEventAnalytics = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const organizerId = req.user?.id;
+    if (!organizerId) throw CreateHttpError(401, "Nicht autorisiert");
 
-    // Gesamtstatistiken
     const totalEvents = await Event.count({ where: { organizerId } });
     const totalBookings = await Registration.count({
       include: [{ model: Event, where: { organizerId }, attributes: [] }]
@@ -156,36 +170,38 @@ export const getEventAnalytics = async (req: AuthRequest, res: Response, next: N
 
     const eventsWithBookings = await Event.findAll({
       where: { organizerId },
-      include: [{
-        model: Registration,
-        as: 'registrations',
-        attributes: []
-      }],
+      include: [{ model: Registration, as: 'registrations', attributes: [] }],
       attributes: {
-        include: [
-          [Sequelize.fn('COUNT', Sequelize.col('registrations.id')), 'bookingsCount']
-        ]
+        include: [[Sequelize.fn('COUNT', Sequelize.col('registrations.id')), 'bookingsCount']]
       },
       group: ['Event.id'],
-      order: [[Sequelize.col('bookingsCount'), 'DESC']]
+      order: [[Sequelize.literal('"bookingsCount"'), 'DESC']]
     });
 
-    const topEvents = eventsWithBookings.slice(0, 5).map((e: any) => ({
-      id: e.id,
-      title: e.title,
-      bookingsCount: parseInt(e.get('bookingsCount') || '0'),
-      maxParticipants: e.maxParticipants,
-      occupancy: Math.round(((e.get('bookingsCount') || 0) / e.maxParticipants) * 100),
-      category: e.category
-    }));
+    const topEvents = eventsWithBookings.slice(0, 5).map((e: any) => {
+      const count = parseInt(String(e.get('bookingsCount') || '0'));
+      return {
+        id: e.id,
+        title: e.title,
+        bookingsCount: count,
+        maxParticipants: e.maxParticipants,
+        occupancy: e.maxParticipants > 0 ? Math.round((count / e.maxParticipants) * 100) : 0,
+        category: e.category
+      };
+    });
 
-    // Kategorie-Statistiken
+    const avgOccupancy = eventsWithBookings.length > 0
+      ? Math.round(
+          eventsWithBookings.reduce((sum, e) => {
+            const c = parseInt(String(e.get('bookingsCount') || '0'));
+            return sum + (e.maxParticipants > 0 ? (c / e.maxParticipants) * 100 : 0);
+          }, 0) / eventsWithBookings.length
+        )
+      : 0;
+
     const categoryStats = await Event.findAll({
       where: { organizerId },
-      attributes: [
-        'category',
-        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']
-      ],
+      attributes: ['category', [Sequelize.fn('COUNT', Sequelize.col('id')), 'count']],
       group: ['category']
     });
 
@@ -193,19 +209,14 @@ export const getEventAnalytics = async (req: AuthRequest, res: Response, next: N
       success: true,
       totalEvents,
       totalBookings,
-      averageOccupancy: totalEvents > 0 
-        ? Math.round((topEvents.reduce((sum, e) => sum + e.occupancy, 0) / topEvents.length) || 0)
-        : 0,
+      averageOccupancy: avgOccupancy,
       topEvents,
       categoryStats: categoryStats.map((c: any) => ({
         category: c.category,
-        count: parseInt(c.get('count')),
-        bookings: 0 // kann später erweitert werden
+        count: parseInt(String(c.get('count') || '0'))
       }))
     });
   } catch (error) {
     next(error);
   }
 };
-
-

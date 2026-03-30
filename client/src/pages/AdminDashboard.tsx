@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { 
   ShieldCheck, 
   Loader2, 
-  Users 
+  Trash2 
 } from 'lucide-react';
 
 interface UserType {
@@ -12,14 +13,14 @@ interface UserType {
   email: string;
   role: string;
   createdAt?: string;
-  lastLogin?: string;
+  lastLogin?: string; // Das Feld aus deiner User.ts
   bookedEventsCount?: number;
-  isActive?: boolean;
 }
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user: currentUser } = useAuth();
 
   const fetchUsers = async () => {
     try {
@@ -28,7 +29,7 @@ export default function AdminDashboard() {
       const userData = res.data.users || res.data || [];
       setUsers(Array.isArray(userData) ? userData : []);
     } catch (err) {
-      console.error("Fehler beim Laden der Benutzer:", err);
+      console.error("Fehler beim Laden:", err);
     } finally {
       setLoading(false);
     }
@@ -38,139 +39,156 @@ export default function AdminDashboard() {
     fetchUsers();
   }, []);
 
+// AdminDashboard.tsx
+
+useEffect(() => {
+  // Funktion, die den Zeitstempel im Backend aktualisiert
+  const sendHeartbeat = async () => {
+    try {
+      await api.post('/admin/heartbeat');
+    } catch (err) {
+      console.error("Heartbeat fehlgeschlagen", err);
+    }
+  };
+
+  // Sofort einmal senden beim Laden
+  sendHeartbeat();
+
+  // Alle 2 Minuten (120000 ms) wiederholen
+  const interval = setInterval(sendHeartbeat, 120000);
+
+  return () => clearInterval(interval); // Aufräumen, wenn Seite verlassen wird
+}, []);
+
+  // VERBESSERTE LOGIK: Nur wer wirklich aktiv ist, wird grün
+  const getStatusBranding = (lastLogin?: string, createdAt?: string) => {
+    if (!lastLogin) {
+      return { label: 'Nie online', color: 'bg-zinc-700', text: 'text-zinc-500', pulse: false };
+    }
+
+    const lastSeen = new Date(lastLogin).getTime();
+    const created = createdAt ? new Date(createdAt).getTime() : 0;
+    const now = new Date().getTime();
+    
+    const diffInMinutes = (now - lastSeen) / (1000 * 60);
+
+    // 1. SCHUTZ: Wenn lastLogin dem Erstellungszeitpunkt entspricht (Standardwert beim Anlegen)
+    // Wir lassen eine Toleranz von 1 Sekunde (1000ms)
+    if (Math.abs(lastSeen - created) < 1000) {
+      return { label: 'Neu angelegt', color: 'bg-zinc-700', text: 'text-zinc-500', pulse: false };
+    }
+
+    // 2. GRÜN: Nur wenn innerhalb der letzten 5 Minuten aktiv (Echtzeit-Gefühl)
+    if (diffInMinutes <= 5) {
+      return { label: 'Online', color: 'bg-emerald-500', text: 'text-emerald-400', pulse: true };
+    }
+
+    // 3. GELB: Heute schon mal da gewesen
+    if (diffInMinutes <= 1440) { // 24 Stunden
+      return { label: 'Zuletzt heute', color: 'bg-orange-500/80', text: 'text-orange-400', pulse: false };
+    }
+
+    // 4. ROT: Länger als 3 Tage weg
+    return { label: 'Offline', color: 'bg-zinc-600', text: 'text-zinc-500', pulse: false };
+  };
+
+  const handleDelete = async (id: number) => {
+    if (currentUser && id === currentUser.id) {
+      alert("Selbstlöschung nicht möglich!");
+      return;
+    }
+    if (!window.confirm("Benutzer wirklich löschen?")) return;
+    try {
+      await api.delete(`/admin/users/${id}`);
+      setUsers(prev => prev.filter(u => u.id !== id));
+    } catch  {
+      alert("Fehler beim Löschen.");
+    }
+  };
+
   const toggleRole = async (user: UserType) => {
     const newRole = user.role === 'user' ? 'organizer' : 'user';
-    
     try {
       await api.put(`/admin/users/${user.id}/role`, { role: newRole });
-      await fetchUsers();
-    } catch (err) {
-      console.error("Fehler beim Rollen-Update:", err);
+      fetchUsers();
+    } catch {
       alert("Fehler beim Ändern der Rolle");
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '—';
-    return new Date(dateString).toLocaleDateString('de-DE', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <Loader2 className="animate-spin text-violet-500" size={60} />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+      <Loader2 className="animate-spin text-violet-500" size={50} />
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-zinc-950 py-12 px-6">
+    <div className="min-h-screen bg-zinc-950 py-12 px-6 text-white">
       <div className="max-w-7xl mx-auto">
-        
-        <div className="flex items-center gap-5 mb-12">
-          <div className="p-4 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-2xl">
-            <ShieldCheck size={40} className="text-white" />
+        <div className="flex justify-between items-center mb-10">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="text-violet-500" size={32} />
+            <h1 className="text-3xl font-black uppercase tracking-tighter">Admin Panel</h1>
           </div>
-          <div>
-            <h1 className="text-5xl font-black tracking-tighter text-white">Admin Panel</h1>
-            <p className="text-gray-400 text-xl mt-1">Benutzerverwaltung</p>
+          <div className="bg-zinc-900 px-6 py-3 rounded-2xl border border-zinc-800">
+            <span className="text-gray-500 text-xs font-bold uppercase mr-3">Total Users:</span>
+            <span className="text-xl font-black">{users.length}</span>
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden">
-          <div className="p-8 border-b border-zinc-800 flex items-center justify-between bg-zinc-950">
-            <div className="flex items-center gap-3">
-              <Users size={28} className="text-violet-400" />
-              <h2 className="text-2xl font-semibold text-white">Benutzerliste</h2>
-            </div>
-            <div className="text-sm text-gray-400">
-              {users.length} Benutzer insgesamt
-            </div>
-          </div>
-
-          {users.length === 0 ? (
-            <div className="p-20 text-center text-gray-400">
-              Keine Benutzer gefunden.
-            </div>
-          ) : (
-            <div className="divide-y divide-zinc-800">
-              {users.map((user) => (
-                <div 
-                  key={user.id} 
-                  className="p-8 hover:bg-zinc-800/60 transition-colors group flex flex-col lg:flex-row lg:items-center gap-8"
-                >
-                  {/* User Info */}
-                  <div className="flex-1 flex items-center gap-5">
-                    <div className="w-14 h-14 bg-zinc-700 rounded-2xl flex items-center justify-center text-2xl font-bold text-white">
+        <div className="bg-zinc-900/40 border border-zinc-800 rounded-[32px] overflow-hidden">
+          <div className="divide-y divide-zinc-800/50">
+            {users.map((user) => {
+              const status = getStatusBranding(user.lastLogin, user.createdAt);
+              
+              return (
+                <div key={user.id} className="p-6 flex flex-col md:flex-row md:items-center gap-6 hover:bg-white/[0.01] transition-all">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center font-bold text-violet-400 border border-zinc-700">
                       {user.username.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-xl font-semibold text-white">{user.username}</p>
-                      <p className="text-gray-400 text-sm">{user.email}</p>
+                      <h3 className="font-bold">{user.username}</h3>
+                      <p className="text-xs text-gray-500">{user.email}</p>
                     </div>
                   </div>
 
-                  {/* Zusätzliche Infos */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-6 text-sm">
+                  <div className="flex-[2] grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-gray-500">Registriert</p>
-                      <p className="text-white font-medium mt-1">{formatDate(user.createdAt)}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-500">Letzter Login</p>
-                      <p className="text-white font-medium mt-1">{formatDate(user.lastLogin)}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-500">Gebuchte Events</p>
-                      <p className="text-white font-semibold mt-1">
-                        {user.bookedEventsCount ?? 0}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-500">Status</p>
-                      <div className={`inline-flex items-center gap-2 mt-1 px-4 py-1 rounded-full text-xs font-medium ${
-                        user.isActive 
-                          ? 'bg-emerald-500/20 text-emerald-400' 
-                          : 'bg-red-500/20 text-red-400'
-                      }`}>
-                        <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                        {user.isActive ? 'Aktiv' : 'Inaktiv'}
+                      <span className="block text-[10px] uppercase text-gray-600 font-bold tracking-widest">Status</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className={`w-2 h-2 rounded-full ${status.color} ${status.pulse ? 'animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]' : ''}`} />
+                        <span className={`text-[11px] font-bold uppercase ${status.text}`}>{status.label}</span>
                       </div>
                     </div>
+                    <div>
+                      <span className="block text-[10px] uppercase text-gray-600 font-bold tracking-widest">Rolle</span>
+                      <span className="text-xs font-medium text-gray-300 capitalize">{user.role}</span>
+                    </div>
                   </div>
 
-                  {/* Rolle & Aktion */}
-                  <div className="flex items-center gap-4 lg:ml-auto">
-                    <span className={`px-6 py-2.5 rounded-2xl text-sm font-bold uppercase tracking-widest ${
-                      user.role === 'admin' 
-                        ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' 
-                        : user.role === 'organizer' 
-                        ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' 
-                        : 'bg-zinc-700 text-gray-300'
-                    }`}>
-                      {user.role.toUpperCase()}
-                    </span>
-
+                  <div className="flex items-center gap-3">
                     {user.role !== 'admin' && (
-                      <button 
-                        onClick={() => toggleRole(user)}
-                        className="px-6 py-3 bg-zinc-800 hover:bg-violet-950 hover:text-violet-400 rounded-2xl transition-all text-sm font-medium"
-                      >
-                        Rolle ändern
-                      </button>
+                      <>
+                        <button 
+                          onClick={() => toggleRole(user)}
+                          className="text-[11px] font-bold bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg transition-colors"
+                        >
+                          Rolle ändern
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(user.id)}
+                          className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

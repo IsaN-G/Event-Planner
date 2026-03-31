@@ -12,7 +12,9 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.NODE_ENV === 'production' 
+    ? ["https://deine-spätere-vercel-url.vercel.app"] // Hier kommt später deine Vercel-URL rein
+    : "http://localhost:5173",
   credentials: true,
 }));
 

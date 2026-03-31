@@ -7,7 +7,7 @@ if (!dbUrl) {
   process.exit(1);
 }
 
-const sequelize = new Sequelize(process.env.DATABASE_URL!, {
+const sequelize = new Sequelize(process.env.DATABASE_URL as string, {
   dialect: 'postgres',
   dialectOptions: {
     ssl: {
@@ -15,7 +15,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL!, {
       rejectUnauthorized: false 
     }
   },
-  logging: false 
+  logging: false,
 });
 
 export default sequelize;

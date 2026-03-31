@@ -13,7 +13,7 @@ const port = process.env.PORT || 4000;
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ["https://deine-spätere-vercel-url.vercel.app"] // Hier kommt später deine Vercel-URL rein
+    ? ["https://event-planner-iota-five.vercel.app/"] // Hier kommt später deine Vercel-URL rein
     : "http://localhost:5173",
   credentials: true,
 }));

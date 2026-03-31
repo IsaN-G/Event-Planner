@@ -10,12 +10,10 @@ import bookingRoutes from './routes/bookingRoutes';
 console.log("DB-URL vorhanden:", !!process.env.DATABASE_URL);
 const app = express();
 const port = process.env.PORT || 4000;
+// server/src/server.ts
 
 app.use(cors({
-  origin: [
-    'https://event-planner-iota-five.vercel.app', 
-    'http://localhost:5173'
-  ],
+  origin: true, // Erlaubt JEDE Domain – nur zum Testen!
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

@@ -1,6 +1,12 @@
 {
     "rewrites": [
-      { "source": "/api/(.*)", "destination": "https://event-planner-backend-m16o.onrender.com/api/$1" },
-      { "source": "/(.*)", "destination": "/index.html" }
+      {
+        "source": "/api/:path*",
+        "destination": "https://event-planner-backend-m16o.onrender.com/api/:path*"
+      },
+      {
+        "source": "/(.*)",
+        "destination": "/index.html"
+      }
     ]
   }

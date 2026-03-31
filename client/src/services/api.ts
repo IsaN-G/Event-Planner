@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+// Prüft, ob die App im Production-Modus (Vercel) läuft
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://event-planner-backend-m16o.onrender.com/api' 
+  : 'http://localhost:4000/api';
+
 const api = axios.create({
-  baseURL: 'http://localhost:4000/api',
+  baseURL: API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {

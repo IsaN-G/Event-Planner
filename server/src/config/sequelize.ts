@@ -9,11 +9,19 @@ if (!dbUrl) {
 
 const sequelize = new Sequelize(process.env.DATABASE_URL as string, {
   dialect: 'postgres',
+  protocol: 'postgres',
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false 
+      rejectUnauthorized: false // Das ist der entscheidende Schalter
     }
+  },
+  // Wichtig für PgBouncer (Port 6543)
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
   },
   logging: false,
 });

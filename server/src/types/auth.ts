@@ -7,6 +7,8 @@ export interface UserPayload extends jsonwebtokenPayload {
   email: string;
   role: "admin" | "user" | "organizer";
 }
+
 export interface AuthRequest extends Request {
   user?: UserPayload;
+  file?: Express.Multer.File; // Neu hinzugefügt für Cloudinary/Multer
 }

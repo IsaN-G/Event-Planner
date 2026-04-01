@@ -1,4 +1,3 @@
-// eventController.ts
 import { Request, Response, NextFunction } from "express";
 import CreateHttpError from "http-errors";
 import { Event, User, Registration } from '../models';
@@ -24,7 +23,7 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
 
 export const createEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { title, description, startDate, endDate, location, maxParticipants, imageUrl, category } = req.body;
+    const { title, description, startDate, endDate, location, maxParticipants, category } = req.body;
     const organizerId = req.user?.id;
 
     if (!organizerId) throw CreateHttpError(401, "Nicht autorisiert");
@@ -33,14 +32,20 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
       throw CreateHttpError(400, "Das Event muss nach dem Start enden.");
     }
 
+    // CLOUDINARY LOGIK
+    // Wenn req.file existiert, wurde das Bild erfolgreich zu Cloudinary hochgeladen
+    const imageUrl = req.file 
+      ? req.file.path 
+      : (req.body.imageUrl || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800");
+
     const event = await Event.create({
       title,
       description: description || "Keine Beschreibung vorhanden.",
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       location,
-      maxParticipants: Number(maxParticipants) || 100,
-      imageUrl: imageUrl || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800",
+      maxParticipants: Number(maxParticipants) || 100, // Number() wichtig für FormData
+      imageUrl,
       category: category || "Allgemein",
       organizerId,
     });
@@ -126,7 +131,15 @@ export const updateEvent = async (req: AuthRequest, res: Response, next: NextFun
       throw CreateHttpError(403, "Keine Berechtigung");
     }
 
-    await event.update(req.body);
+    // Daten für das Update vorbereiten
+    const updateData = { ...req.body };
+    
+    // Falls ein neues Bild hochgeladen wurde, überschreiben wir die imageUrl
+    if (req.file) {
+      updateData.imageUrl = req.file.path;
+    }
+
+    await event.update(updateData);
 
     const updated = await Event.findByPk(eventId, {
       include: [{ model: User, as: "organizer", attributes: ["id", "username"] }]

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Calendar, Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Calendar, Loader2, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -33,51 +33,62 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-6 py-12">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-[#09090b] flex items-center justify-center px-6 py-12 relative overflow-hidden">
+      {/* Background Decor - Violet Glow */}
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-violet-600/10 blur-[140px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-600/5 blur-[140px] rounded-full pointer-events-none" />
+
+      <div className="max-w-md w-full relative z-10">
         
-        <div className="text-center mb-10">
-          <div className="inline-flex p-5 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-3xl shadow-2xl mb-6">
-            <Calendar size={48} className="text-white" />
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <div className="inline-flex p-5 bg-white text-black rounded-[28px] shadow-2xl mb-8 transform -rotate-3 group hover:rotate-0 transition-transform duration-500">
+            <Calendar size={40} strokeWidth={2.5} />
           </div>
-          <h2 className="text-5xl font-black tracking-tighter text-white mb-3">Willkommen zurück</h2>
-          <p className="text-gray-400 text-xl">Melde dich an, um deine Events zu erleben.</p>
+          <h2 className="text-6xl font-black tracking-tighter uppercase italic text-white leading-none mb-4">
+            Welcome <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">Back</span>
+          </h2>
+          <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em]">
+            Access your digital experience
+          </p>
         </div>
 
+        {/* Error Message */}
         {error && (
-          <div className="mb-8 p-5 bg-red-950 border border-red-800 rounded-2xl text-red-400 font-medium flex items-center gap-3">
-            <AlertCircle size={24} />
+          <div className="mb-8 p-5 bg-red-500/10 border border-red-500/20 rounded-3xl text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-4 animate-shake">
+            <AlertCircle size={20} />
             {error}
           </div>
         )}
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-10">
+        {/* Login Card */}
+        <div className="bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-xl rounded-[40px] p-10 shadow-3xl">
           <form onSubmit={handleSubmit} className="space-y-8">
             
-            <div>
-              <label className="block text-lg font-semibold text-white mb-3">E-MAIL ADRESSE</label>
-              <div className="relative">
-                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-violet-400" size={22} />
+            <div className="space-y-3">
+              <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] ml-2">E-Mail Identity</label>
+              <div className="relative group">
+                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors" size={20} />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-14 pr-6 py-5 bg-zinc-950 border border-zinc-700 focus:border-violet-500 rounded-2xl text-white placeholder:text-gray-500 focus:outline-none"
-                  placeholder="name@beispiel.de"
+                  className="w-full pl-14 pr-6 py-5 bg-zinc-950/50 border border-zinc-800 focus:border-violet-500/50 rounded-2xl text-white placeholder:text-zinc-700 focus:outline-none transition-all"
+                  placeholder="your@identity.com"
                   required
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-lg font-semibold text-white mb-3">PASSWORT</label>
-              <div className="relative">
-                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-violet-400" size={22} />
+            <div className="space-y-3">
+              <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] ml-2">Secure Access</label>
+              <div className="relative group">
+                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors" size={20} />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-14 pr-6 py-5 bg-zinc-950 border border-zinc-700 focus:border-violet-500 rounded-2xl text-white placeholder:text-gray-500 focus:outline-none"
+                  className="w-full pl-14 pr-6 py-5 bg-zinc-950/50 border border-zinc-800 focus:border-violet-500/50 rounded-2xl text-white placeholder:text-zinc-700 focus:outline-none transition-all"
                   placeholder="••••••••"
                   required
                 />
@@ -87,21 +98,33 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-6 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:brightness-110 text-white font-black text-2xl rounded-3xl transition-all shadow-2xl shadow-violet-500/40 disabled:opacity-70"
+              className="w-full py-6 bg-white hover:bg-violet-600 text-black hover:text-white font-black text-xs uppercase tracking-[0.2em] rounded-3xl transition-all duration-300 shadow-2xl flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
             >
-              {loading ? <Loader2 className="animate-spin mx-auto" size={32} /> : 'ANMELDEN'}
+              {loading ? (
+                <Loader2 className="animate-spin" size={24} />
+              ) : (
+                <>
+                  Enter Console <ArrowRight size={18} />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-gray-400">
-              Noch kein Konto?{' '}
-              <Link to="/register" className="text-violet-400 hover:text-violet-300 font-semibold">
-                Jetzt registrieren
+          {/* Footer Link */}
+          <div className="mt-10 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
+              No account yet?{' '}
+              <Link to="/register" className="text-white hover:text-violet-500 transition-colors ml-2 underline underline-offset-4">
+                Join the Movement
               </Link>
             </p>
           </div>
         </div>
+
+        {/* Sub-Footer Text */}
+        <p className="mt-12 text-center text-[8px] font-black text-zinc-800 uppercase tracking-[0.5em]">
+          Secured Entry • Verified Access Only
+        </p>
       </div>
     </div>
   );

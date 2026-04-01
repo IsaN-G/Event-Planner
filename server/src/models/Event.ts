@@ -6,6 +6,7 @@ class Event extends Model {
   declare id: CreationOptional<number>;
   declare title: string;
   declare description?: string;
+  declare agenda?: string; // NEU
   declare startDate: Date;
   declare endDate: Date;
   declare location: string;
@@ -14,6 +15,7 @@ class Event extends Model {
   declare imageUrl?: string;
   declare organizerId: ForeignKey<User["id"]>;
   declare organizer?: NonAttribute<User>;
+  declare status?: string; // Falls für den Status-Update benötigt
 }
 
 Event.init({
@@ -30,6 +32,11 @@ Event.init({
     type: DataTypes.TEXT,
     allowNull: true,
     defaultValue: "Keine Beschreibung vorhanden."
+  },
+  agenda: { // NEU
+    type: DataTypes.TEXT,
+    allowNull: true,
+    defaultValue: ""
   },
   startDate: {
     type: DataTypes.DATE,
@@ -57,6 +64,11 @@ Event.init({
     type: DataTypes.STRING,
     allowNull: false,
     defaultValue: "Allgemein"
+  },
+  status: { // Optional, falls du den Status-Helper nutzt
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: "planned"
   },
   organizerId: {
     type: DataTypes.INTEGER,

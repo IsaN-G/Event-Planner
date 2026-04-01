@@ -4,7 +4,6 @@ import { AuthRequest, UserPayload } from "../types/auth";
 import CreateHttpError from "http-errors";
 import { JWT_SECRET } from "../config/env";
 
-
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1];
@@ -14,11 +13,23 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 
   try {
-   
     const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
-    req.user = decoded; 
+
+    // FORCE: id immer als String speichern
+    const safeId = String(decoded.id);
+
+    req.user = {
+      id: safeId,
+      username: decoded.username,
+      email: decoded.email,
+      role: decoded.role,
+    };
+
+    console.log(`[Auth] Token decodiert - userId als String: "${safeId}"`);
+
     next();
   } catch (error) {
+    console.error("Auth Middleware Error:", error);
     next(CreateHttpError(401, "Token ungültig oder abgelaufen"));
   }
 };

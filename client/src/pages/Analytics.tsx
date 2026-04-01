@@ -4,9 +4,11 @@ import {
   TrendingUp, 
   Users, 
   Calendar, 
-  BarChart3, 
-  Loader2, 
-  ArrowLeft 
+  AlertCircle,
+  ArrowLeft,
+  Trophy,
+  Activity,
+  Layers
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -51,130 +53,140 @@ export default function Analytics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <Loader2 className="animate-spin text-violet-500" size={60} />
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-violet-500/20 border-t-violet-500 rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!data) {
-    return <div className="text-white p-10">Fehler beim Laden der Analytics.</div>;
+    return (
+      <div className="min-h-screen bg-[#09090b] flex flex-col items-center justify-center p-10">
+        <AlertCircle size={48} className="text-red-500 mb-4" />
+        <p className="text-white font-black uppercase tracking-widest">Daten-Sync fehlgeschlagen</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white py-12 px-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#09090b] text-white py-16 px-6 relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-violet-600/5 blur-[140px] rounded-full pointer-events-none" />
+
+      <div className="max-w-[1400px] mx-auto relative z-10">
         
-        {/* Header */}
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-5">
-            <div className="p-4 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-2xl">
-              <BarChart3 size={40} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-5xl font-black tracking-tighter">Event Analytics</h1>
-              <p className="text-gray-400 text-xl mt-1">Performance deiner Veranstaltungen</p>
-            </div>
-          </div>
-
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-gray-400 hover:text-white"
-          >
-            <ArrowLeft size={20} /> Zurück zum Dashboard
-          </button>
-        </div>
-
-        {/* Statistik Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-            <div className="flex items-center gap-4 mb-6">
-              <Calendar className="text-violet-400" size={32} />
-              <div>
-                <p className="text-gray-400">Gesamt Events</p>
-                <p className="text-5xl font-black">{data.totalEvents}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-            <div className="flex items-center gap-4 mb-6">
-              <Users className="text-fuchsia-400" size={32} />
-              <div>
-                <p className="text-gray-400">Gesamtbuchungen</p>
-                <p className="text-5xl font-black">{data.totalBookings}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-            <div className="flex items-center gap-4 mb-6">
-              <TrendingUp className="text-emerald-400" size={32} />
-              <div>
-                <p className="text-gray-400">Durchschnittliche Auslastung</p>
-                <p className="text-5xl font-black">{data.averageOccupancy}%</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Top Events */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-            <TrendingUp size={28} className="text-violet-400" />
-            Top Events
-          </h2>
-          
+        {/* HEADER SECTION */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="space-y-4">
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.3em] mb-4 group"
+            >
+              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+              Back to Console
+            </button>
+            <h1 className="text-7xl font-black tracking-tighter uppercase italic leading-none text-white">
+              Data <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">Insights</span>
+            </h1>
+          </div>
+
+          <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-3xl backdrop-blur-md">
+            <Activity className="text-violet-500" size={32} />
+          </div>
+        </div>
+
+        {/* TOP LEVEL STATS - BOLD & MINIMAL */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-violet-600/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+            <div className="relative bg-zinc-900/40 border border-zinc-800/50 rounded-[40px] p-10 backdrop-blur-xl">
+                <Calendar className="text-zinc-600 mb-6" size={24} />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">Total Events</p>
+                <p className="text-6xl font-black italic tracking-tighter">{data.totalEvents}</p>
+            </div>
+          </div>
+
+          <div className="relative group">
+            <div className="absolute inset-0 bg-fuchsia-600/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+            <div className="relative bg-zinc-900/40 border border-zinc-800/50 rounded-[40px] p-10 backdrop-blur-xl">
+                <Users className="text-zinc-600 mb-6" size={24} />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">Bookings</p>
+                <p className="text-6xl font-black italic tracking-tighter text-fuchsia-500">{data.totalBookings.toLocaleString()}</p>
+            </div>
+          </div>
+
+          <div className="relative group">
+            <div className="absolute inset-0 bg-emerald-600/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+            <div className="relative bg-zinc-900/40 border border-zinc-800/50 rounded-[40px] p-10 backdrop-blur-xl">
+                <TrendingUp className="text-zinc-600 mb-6" size={24} />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">Occupancy</p>
+                <p className="text-6xl font-black italic tracking-tighter text-emerald-400">{data.averageOccupancy}%</p>
+            </div>
+          </div>
+        </div>
+
+        {/* TOP EVENTS - REIMAGINED AS A RANKING */}
+        <div className="mb-24">
+          <div className="flex items-center gap-4 mb-10">
+            <Trophy size={20} className="text-violet-500" />
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">High Performance Ranking</h2>
+          </div>
+          
+          <div className="grid gap-4">
             {data.topEvents.map((event, index) => (
-              <div key={event.id} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 flex flex-col md:flex-row md:items-center gap-8">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4">
-                    <div className="text-4xl font-black text-violet-500">#{index + 1}</div>
-                    <div>
-                      <h3 className="text-2xl font-semibold">{event.title}</h3>
-                      <p className="text-gray-400">{event.category}</p>
-                    </div>
+              <div key={event.id} className="group bg-zinc-900/20 border border-zinc-800/50 hover:border-violet-500/50 rounded-[32px] p-8 flex flex-col md:flex-row md:items-center gap-10 transition-all duration-500">
+                <div className="flex items-center gap-8 md:w-1/3">
+                  <div className="text-5xl font-black italic text-zinc-800 group-hover:text-violet-500 transition-colors duration-500">
+                    {(index + 1).toString().padStart(2, '0')}
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black uppercase italic tracking-tighter group-hover:text-white transition-colors">{event.title}</h3>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600">{event.category}</span>
                   </div>
                 </div>
 
-                <div className="flex-1">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Buchungen</span>
-                    <span className="font-semibold">{event.bookingsCount} / {event.maxParticipants}</span>
+                <div className="flex-1 space-y-3">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">Tickets Sold</span>
+                    <span className="font-bold text-sm tracking-tighter">{event.bookingsCount} / {event.maxParticipants}</span>
                   </div>
-                  <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all"
+                      className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-1000 ease-out"
                       style={{ width: `${event.occupancy}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="text-right">
-                  <div className="text-4xl font-black text-emerald-400">{event.occupancy}%</div>
-                  <p className="text-xs text-gray-500">Auslastung</p>
+                <div className="md:w-32 text-right">
+                  <div className="text-4xl font-black italic tracking-tighter text-emerald-400 group-hover:scale-110 transition-transform">{event.occupancy}%</div>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600 mt-1">Success Rate</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Kategorie-Übersicht */}
+        {/* CATEGORY STATS - GRID CARDS */}
         <div>
-          <h2 className="text-3xl font-bold mb-6">Events nach Kategorie</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex items-center gap-4 mb-10">
+            <Layers size={20} className="text-fuchsia-500" />
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-400">Category Breakdown</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {data.categoryStats.map((cat) => (
-              <div key={cat.category} className="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-                <div className="flex justify-between items-start">
+              <div key={cat.category} className="bg-zinc-950/50 border border-zinc-800/80 rounded-[32px] p-8 hover:bg-zinc-900/50 transition-all group">
+                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 mb-6 group-hover:text-fuchsia-500 transition-colors">
+                  {cat.category}
+                </p>
+                <div className="flex justify-between items-end">
                   <div>
-                    <p className="text-xl font-semibold">{cat.category}</p>
-                    <p className="text-4xl font-black mt-2">{cat.count}</p>
-                    <p className="text-gray-400">Events</p>
+                    <p className="text-4xl font-black italic tracking-tighter mb-1">{cat.count}</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-zinc-700">Events</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-4xl font-black text-fuchsia-400">{cat.bookings}</p>
-                    <p className="text-gray-400">Buchungen</p>
+                    <p className="text-2xl font-black italic tracking-tighter text-zinc-300 mb-1">{cat.bookings}</p>
+                    <p className="text-[8px] font-black uppercase tracking-widest text-zinc-700">Sales</p>
                   </div>
                 </div>
               </div>

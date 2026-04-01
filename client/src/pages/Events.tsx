@@ -2,11 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   PlusCircle, 
   MapPin, 
-  CalendarDays, 
   Users, 
-  Loader2, 
   Search,
-  Filter
+  ArrowRight,
+  AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -34,15 +33,19 @@ export default function Events() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Alle');
 
-  const categories = [
-    'Alle',
-    'Firmenveranstaltungen',
-    'Gesellschaftliche Veranstaltungen',
-    'Kultur-/Unterhaltungsveranstaltungen',
-    'Wohltätigkeitsveranstaltungen (Charity)',
-    'Kinder-Event',
-    'Allgemein'
-  ];
+  const vibes: Record<string, string> = {
+    Alle: "Finde dein nächstes unvergessliches Erlebnis",
+    Party: "Die Nacht gehört uns! Fette Beats & kühle Drinks.",
+    Sport: "Zeit an die Grenzen zu gehen! Pure Leidenschaft.",
+    Kultur: "Inspiration pur. Tauche ein in neue Welten.",
+    Workshop: "Upgrade your Skills! Lerne von den Besten.",
+    Gaming: "Level Up! Messe dich mit den Besten.",
+    Chill: "Deep Vibes Only. Lockere Gespräche.",
+    Food: "Ein Fest für die Sinne. Neue Geschmackswelten.",
+    Outdoor: "Ab nach draußen! Das nächste große Abenteuer.",
+  };
+
+  const categories = ['Alle', 'Party', 'Sport', 'Kultur', 'Workshop', 'Gaming', 'Chill', 'Food', 'Outdoor'];
 
   const fetchEvents = async () => {
     try {
@@ -51,181 +54,134 @@ export default function Events() {
       const response = await api.get('/events');
       const data = response.data.events || response.data;
       setEvents(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-      setError('Die Events konnten nicht geladen werden.');
+    } catch {
+      setError('Events konnten nicht geladen werden.');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  useEffect(() => { fetchEvents(); }, []);
 
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
-      const matchesSearch = 
-        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.location.toLowerCase().includes(searchTerm.toLowerCase());
-      
+      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            event.location.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === 'Alle' || event.category === selectedCategory;
-      
       return matchesSearch && matchesCategory;
     });
   }, [events, searchTerm, selectedCategory]);
 
-  const formatDateTimeDisplay = (startStr: string, endStr: string) => {
+  const formatDateTimeDisplay = (startStr: string) => {
     const start = new Date(startStr);
-    const end = new Date(endStr);
-    
-    const date = start.toLocaleDateString('de-DE', { 
-      day: '2-digit', 
-      month: 'long' 
-    });
-    
-    const startTime = start.toLocaleTimeString('de-DE', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  
-    const endTime = end.toLocaleTimeString('de-DE', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  
-    return `${date} | ${startTime} - ${endTime} Uhr`;
+    return start.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 py-12 px-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans selection:bg-violet-500/30">
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-[-5%] right-[-5%] w-[45%] h-[45%] bg-violet-600/10 blur-[120px] rounded-full opacity-40" />
+      </div>
+
+      <div className="max-w-[1400px] mx-auto px-6 py-10">
         
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div>
-            <h1 className="text-6xl font-black tracking-tighter text-white mb-3">
-              Entdecke <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">Events</span>
+        {/* HEADER SECTION */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-8">
+          <div className="space-y-4">
+            <h1 className="text-7xl font-black tracking-tighter uppercase italic leading-none text-white">
+              Explore <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">Events</span>
             </h1>
-            <p className="text-xl text-gray-400 font-medium">
-              Finde dein nächstes unvergessliches Erlebnis
+            <p className="text-xs text-zinc-500 font-black uppercase tracking-[0.4em] bg-zinc-900/50 w-fit px-4 py-2 rounded-full border border-zinc-800/50">
+              {vibes[selectedCategory] || vibes['Alle']}
             </p>
           </div>
 
           {(user?.role === 'organizer' || user?.role === 'admin') && (
-            <button 
-              onClick={() => navigate('/create-event')}
-              className="flex items-center gap-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:brightness-110 text-white px-8 py-4 rounded-3xl font-semibold text-lg shadow-xl shadow-violet-500/30 transition-all active:scale-95"
-            >
-              <PlusCircle size={24} />
-              Event erstellen
+            <button onClick={() => navigate('/create-event')} className="flex items-center gap-3 bg-white text-black hover:bg-violet-600 hover:text-white px-8 py-4 rounded-[20px] font-black uppercase text-[10px] tracking-widest transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95 group">
+              <PlusCircle size={18} /> Event erstellen
             </button>
           )}
         </div>
 
-        {/* Suche & Filter */}
-        <div className="flex flex-col md:flex-row gap-4 mb-12">
-          <div className="relative flex-1">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-violet-500" size={22} />
-            <input 
-              type="text"
-              placeholder="Event oder Ort suchen..."
-              className="w-full pl-14 pr-6 py-4 bg-zinc-900 border border-zinc-700 rounded-3xl focus:outline-none focus:border-violet-500 text-lg text-white placeholder:text-gray-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="relative min-w-[260px]">
-            <Filter className="absolute left-5 top-1/2 -translate-y-1/2 text-violet-500" size={22} />
-            <select 
-              className="w-full pl-14 pr-10 py-4 bg-zinc-900 border border-zinc-700 rounded-3xl focus:outline-none focus:border-violet-500 text-lg text-white cursor-pointer appearance-none"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+        {/* NEW WOW-CATEGORY-FILTER (Pills statt Dropdown) */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                selectedCategory === cat 
+                ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 border-transparent text-white shadow-[0_0_20px_rgba(139,92,246,0.3)]' 
+                : 'bg-zinc-900/50 border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300'
+              }`}
             >
-              {categories.map(cat => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
+              {cat}
+            </button>
+          ))}
         </div>
 
-        {/* Events Grid */}
+        {/* SEARCH BAR (Jetzt ganz clean) */}
+        <div className="relative mb-16 group">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors" size={20} />
+          <input 
+            type="text" 
+            placeholder="Nach Titel oder Ort suchen..." 
+            className="w-full pl-16 pr-8 py-5 bg-zinc-900/20 border border-zinc-800/50 rounded-[24px] focus:outline-none focus:border-violet-500/50 focus:bg-zinc-900/40 text-sm font-bold text-white placeholder:text-zinc-700 uppercase tracking-widest transition-all backdrop-blur-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* ERROR / LOADING / GRID */}
+        {error && (
+          <div className="mb-10 p-5 bg-red-500/10 border border-red-500/20 rounded-[24px] flex items-center gap-4 text-red-500">
+            <AlertCircle size={20} />
+            <p className="text-[10px] font-black uppercase tracking-[0.2em]">{error}</p>
+          </div>
+        )}
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="animate-spin text-violet-500 mb-4" size={56} />
-            <p className="text-gray-400 font-semibold text-lg">Events werden geladen...</p>
-          </div>
-        ) : error ? (
-          <div className="bg-red-950 text-red-400 p-8 rounded-3xl text-center font-medium">
-            {error}
+            <div className="w-12 h-12 border-2 border-violet-500/20 border-t-violet-500 rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.length === 0 ? (
-              <div className="col-span-full text-center py-20">
-                <p className="text-2xl text-gray-400 font-medium">
-                  Keine Events für diese Auswahl gefunden.
-                </p>
-              </div>
-            ) : (
-              filteredEvents.map((event) => (
-                <div 
-                  key={event.id} 
-                  onClick={() => navigate(`/events/${event.id}`)}
-                  className="group bg-zinc-900 border border-zinc-800 hover:border-violet-500/50 rounded-3xl overflow-hidden shadow-1xl transition-all duration-300 cursor-pointer flex flex-col h-full"
-                >
-                  {/* Bild - größerer Fokus */}
-                  <div className="relative h-80 overflow-hidden">
-                    <img 
-                      src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4'} 
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-90 transition-transform duration-400"
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent" />
-                    
-                    <div className="absolute top-6 left-6 bg-black/70 backdrop-blur-md px-5 py-2 rounded-2xl text-xs font-bold uppercase tracking-widest text-white border border-white/20">
-                      {event.category}
-                    </div>
-                  </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {filteredEvents.map((event) => (
+              <div 
+                key={event.id} 
+                onClick={() => navigate(`/events/${event.id}`)}
+                className="group relative bg-zinc-900/20 border border-zinc-800/50 hover:border-violet-500/50 rounded-[40px] overflow-hidden transition-all duration-500 cursor-pointer flex flex-col h-[440px]"
+              >
+                <div className="relative h-[55%] overflow-hidden">
+                  <img src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4'} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale-[20%] group-hover:grayscale-0" alt="img" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-transparent to-transparent opacity-90" />
+                </div>
 
-                  {/* Content */}
-                  <div className="p-8 flex flex-col flex-1">
-                    <h3 className="text-2xl font-black text-white leading-tight mb-6 line-clamp-2 group-hover:text-violet-400 transition-colors">
+                <div className="p-8 flex flex-col justify-between flex-1 relative z-10 -mt-10">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-violet-500/10 text-violet-400 text-[8px] font-black uppercase tracking-widest rounded-lg border border-violet-500/20 italic">
+                        {event.category}
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">{formatDateTimeDisplay(event.startDate)}</span>
+                    </div>
+                    <h3 className="text-2xl font-black text-white leading-[1.1] uppercase italic tracking-tighter group-hover:text-violet-400 transition-colors line-clamp-2">
                       {event.title}
                     </h3>
+                  </div>
 
-                    <div className="space-y-4 mb-auto text-gray-400 text-[15px]">
-                      <div className="flex items-center gap-3">
-                        <CalendarDays size={20} className="text-violet-500 shrink-0" />
-                        <span>{formatDateTimeDisplay(event.startDate, event.endDate)}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <MapPin size={20} className="text-violet-500 flex-shrink-0" />
-                        <span>{event.location}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Users size={20} className="text-violet-500 flex-shrink-0" />
-                        <span>Bis zu {event.maxParticipants.toLocaleString('de-DE')} Personen</span>
-                      </div>
+                  <div className="flex items-center justify-between pt-5 border-t border-zinc-800/50">
+                    <div className="flex items-center gap-4 text-zinc-500 text-[9px] font-bold uppercase tracking-widest">
+                      <div className="flex items-center gap-1.5"><Users size={12} className="text-violet-500" /> {event.maxParticipants}</div>
+                      <div className="flex items-center gap-1.5 line-clamp-1 max-w-[90px]"><MapPin size={12} className="text-violet-500" /> {event.location}</div>
                     </div>
-
-                    {/* Button mit Gradient, aber kleiner und dezenter */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/events/${event.id}`);
-                      }}
-                      className="mt-8 w-full py-3.5 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-violet-600 text-white font-semibold text-base rounded-2xl shadow-lg shadow-violet-500/30 hover:shadow-xl hover:brightness-110 transition-all active:scale-[0.98]"
-                    >
-                      Details ansehen
-                    </button>
+                    <div className="w-10 h-10 rounded-2xl bg-zinc-800/50 flex items-center justify-center group-hover:bg-violet-600 transition-all shadow-lg">
+                      <ArrowRight size={16} className="text-white" />
+                    </div>
                   </div>
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
         )}
       </div>

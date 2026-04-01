@@ -3,6 +3,7 @@ import sequelize from "../config/sequelize";
 import User from "./User";
 import Event from "./Event";
 import Registration from "./Registration";
+import Message from "./Message";
 
 // Organizer Beziehung
 User.hasMany(Event, {
@@ -16,10 +17,10 @@ Event.belongsTo(User, {
   as: "organizer",
 });
 
-// Buchungen (Registration) - WICHTIG FÜR ADMIN
+// Buchungen
 User.hasMany(Registration, {
   foreignKey: 'userId',
-  as: 'registrations'           // ← Dieser Alias muss exakt so heißen
+  as: 'registrations'
 });
 
 Registration.belongsTo(User, {
@@ -35,7 +36,7 @@ Registration.belongsTo(Event, {
   foreignKey: 'eventId'
 });
 
-// Many-to-Many (für andere Queries)
+// Many-to-Many für Bookings
 User.belongsToMany(Event, {
   through: Registration,
   foreignKey: 'userId',
@@ -50,4 +51,24 @@ Event.belongsToMany(User, {
   as: 'participants'
 });
 
-export { sequelize, User, Event, Registration };
+// ====================== CHAT BEZIEHUNGEN ======================
+User.hasMany(Message, {
+  foreignKey: 'userId',
+  as: 'messages'
+});
+
+Message.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'sender'
+});
+
+Event.hasMany(Message, {
+  foreignKey: 'eventId',
+  as: 'messages'
+});
+
+Message.belongsTo(Event, {
+  foreignKey: 'eventId'
+});
+
+export { sequelize, User, Event, Registration, Message };

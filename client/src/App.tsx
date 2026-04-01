@@ -1,10 +1,12 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
+
 import Events from './pages/Events';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import EventDetail from './pages/EventDetail';
+    
 import AdminDashboard from './pages/AdminDashboard';
 import CreateEvent from './pages/CreateEvent'; 
 import EditEvent from './pages/EditEvent'; 
@@ -31,8 +33,9 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/events/:id" element={<EventDetail />} />
 
+        
 
-          {/* User Routen (Tickets) */}
+          {/* User Routen */}
           <Route 
             path="/my-tickets" 
             element={isAuthenticated ? <MyTickets /> : <Navigate to="/login" replace />} 
@@ -49,24 +52,23 @@ function App() {
             element={isOrganizerOrAdmin ? <CreateEvent /> : <Navigate to="/login" replace />} 
           />
 
-          {/* WICHTIG: Route an Dashboard-Link angepasst (/edit-event/:id) */}
           <Route 
             path="/edit-event/:id" 
             element={isOrganizerOrAdmin ? <EditEvent /> : <Navigate to="/login" replace />} 
           />
-<Route 
-  path="/analytics" 
-  element={isOrganizerOrAdmin ? <Analytics /> : <Navigate to="/login" replace />} 
-/>
 
+          <Route 
+            path="/analytics" 
+            element={isOrganizerOrAdmin ? <Analytics /> : <Navigate to="/login" replace />} 
+          />
 
-          {/* Admin exklusive Route */}
+          {/* Admin Route */}
           <Route 
             path="/admin" 
             element={isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
           />
 
-          {/* Catch-all: Unbekannte Seiten leiten zur Startseite */}
+          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -9,6 +9,7 @@ import {
   updateEvent,
   deleteEvent,
   getEventAnalytics,
+  updateStatus
 } from "../controllers/eventController";
 
 const router = Router();
@@ -25,7 +26,7 @@ router.get("/:id", getEventById);
 
 // 4. Aktionen, die Login erfordern
 router.use(authMiddleware); 
-
+router.patch('/:id/status', authMiddleware,updateStatus);
 // WICHTIG: upload.single('image') ermöglicht den Bildupload für POST und PUT
 router.post("/", upload.single('image'), createEvent);
 router.put("/:id", upload.single('image'), updateEvent);

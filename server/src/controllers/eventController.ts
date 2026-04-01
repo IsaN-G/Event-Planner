@@ -14,7 +14,6 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
         attributes: ["id", "username"],
       }],
     });
-
     res.json({ success: true, count: events.length, events });
   } catch (error) {
     next(error);
@@ -23,17 +22,14 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
 
 export const createEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { title, description, startDate, endDate, location, maxParticipants, category } = req.body;
+    const { title, description, agenda, startDate, endDate, location, maxParticipants, category } = req.body;
     const organizerId = req.user?.id;
 
     if (!organizerId) throw CreateHttpError(401, "Nicht autorisiert");
-
     if (new Date(startDate) >= new Date(endDate)) {
       throw CreateHttpError(400, "Das Event muss nach dem Start enden.");
     }
 
-    // CLOUDINARY LOGIK
-    // Wenn req.file existiert, wurde das Bild erfolgreich zu Cloudinary hochgeladen
     const imageUrl = req.file 
       ? req.file.path 
       : (req.body.imageUrl || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800");
@@ -41,10 +37,11 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
     const event = await Event.create({
       title,
       description: description || "Keine Beschreibung vorhanden.",
+      agenda: agenda || "", // NEU: Agenda beim Erstellen speichern
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       location,
-      maxParticipants: Number(maxParticipants) || 100, // Number() wichtig für FormData
+      maxParticipants: Number(maxParticipants) || 100,
       imageUrl,
       category: category || "Allgemein",
       organizerId,
@@ -62,7 +59,7 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
 
 export const getEventById = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const eventId = String(req.params.id);
+    const eventId = req.params.id as string;
     const userId = req.user?.id;
 
     const event = await Event.findByPk(eventId, {
@@ -120,21 +117,20 @@ export const getMyEvents = async (req: AuthRequest, res: Response, next: NextFun
 
 export const updateEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const eventId = String(req.params.id);
+    const eventId = req.params.id as string;
     const userId = req.user?.id;
     const userRole = req.user?.role;
 
     const event = await Event.findByPk(eventId);
     if (!event) throw CreateHttpError(404, "Event nicht gefunden");
 
-    if (event.organizerId !== Number(userId) && userRole !== 'admin') {
-      throw CreateHttpError(403, "Keine Berechtigung");
+    if (Number(event.organizerId) !== Number(userId) && userRole !== 'admin') {
+      throw CreateHttpError(403, "Keine Berechtigung: Nur der Host kann dieses Event bearbeiten.");
     }
 
-    // Daten für das Update vorbereiten
+    // Nimmt automatisch alle Felder aus req.body (inklusive agenda)
     const updateData = { ...req.body };
     
-    // Falls ein neues Bild hochgeladen wurde, überschreiben wir die imageUrl
     if (req.file) {
       updateData.imageUrl = req.file.path;
     }
@@ -145,7 +141,7 @@ export const updateEvent = async (req: AuthRequest, res: Response, next: NextFun
       include: [{ model: User, as: "organizer", attributes: ["id", "username"] }]
     });
 
-    res.json({ success: true, message: "Event aktualisiert", event: updated });
+    res.json({ success: true, message: "Event erfolgreich aktualisiert! ✨", event: updated });
   } catch (error) {
     next(error);
   }
@@ -153,14 +149,14 @@ export const updateEvent = async (req: AuthRequest, res: Response, next: NextFun
 
 export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const eventId = String(req.params.id);
+    const eventId = req.params.id as string;
     const userId = req.user?.id;
     const userRole = req.user?.role;
 
     const event = await Event.findByPk(eventId);
     if (!event) throw CreateHttpError(404, "Event nicht gefunden");
 
-    if (event.organizerId !== Number(userId) && userRole !== 'admin') {
+    if (Number(event.organizerId) !== Number(userId) && userRole !== 'admin') {
       throw CreateHttpError(403, "Keine Berechtigung");
     }
 
@@ -219,11 +215,7 @@ export const getEventAnalytics = async (req: AuthRequest, res: Response, next: N
     });
 
     res.json({
-      success: true,
-      totalEvents,
-      totalBookings,
-      averageOccupancy: avgOccupancy,
-      topEvents,
+      success: true, totalEvents, totalBookings, averageOccupancy: avgOccupancy, topEvents,
       categoryStats: categoryStats.map((c: any) => ({
         category: c.category,
         count: parseInt(String(c.get('count') || '0'))
@@ -231,5 +223,19 @@ export const getEventAnalytics = async (req: AuthRequest, res: Response, next: N
     });
   } catch (error) {
     next(error);
+  }
+};
+
+export const updateStatus = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string; 
+    const { status } = req.body;
+    const event = await Event.findByPk(id);
+    if (!event) return res.status(404).json({ message: "Event nicht gefunden" });
+
+    await event.update({ status });
+    return res.json({ message: `Event ist jetzt ${status}`, event });
+  } catch (error) {
+    return res.status(500).json({ message: "Fehler beim Status-Update" });
   }
 };

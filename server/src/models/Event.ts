@@ -36,7 +36,7 @@ Event.init({
     defaultValue: "Keine Beschreibung vorhanden."
   },
   agenda: { // NEU
-    type: DataTypes.TEXT,
+    type: DataTypes.JSONB,
     allowNull: true,
     defaultValue: ""
   },

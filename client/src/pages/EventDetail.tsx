@@ -22,7 +22,9 @@ interface EventDetailType {
   imageUrl?: string;
   status?: string; 
   organizerId: number;
-  agenda?: string; 
+  agenda?: any; 
+  lat?: number;
+  lng?: number;
 }
 
 interface Participant {
@@ -85,13 +87,22 @@ export default function EventDetail() {
 
         const eventData = eventRes.data.event || eventRes.data;
         setEvent(eventData);
-        setEditedDescription(eventData.description);
-        setEditedAgenda(eventData.agenda || "");
+        setEditedDescription(eventData.description || "");
+        
+        // Editor-Vorbereitung: Verhindert Absturz beim Öffnen des Modals
+        if (Array.isArray(eventData.agenda)) {
+          setEditedAgenda(eventData.agenda.join('\n'));
+        } else if (typeof eventData.agenda === 'string' && eventData.agenda.trim() !== "") {
+           setEditedAgenda(eventData.agenda);
+        } else {
+          setEditedAgenda("");
+        }
+
         setIsEventStarted(eventData.status === 'active');
         
         const partData = partRes.data || [];
         setParticipants(partData);
-        setIsJoined(partData.some((p: Participant) => String(p.User.id) === String(user?.id)));
+        setIsJoined(partData.some((p: Participant) => String(p.User?.id) === String(user?.id)));
         
       } catch (err) { 
         console.error("Fehler beim Laden:", err); 
@@ -177,11 +188,12 @@ export default function EventDetail() {
 
   const handleSaveDetails = async () => {
     try {
+      const agendaArray = editedAgenda.split('\n').filter(line => line.trim() !== "");
       await api.put(`/events/${id}`, { 
         description: editedDescription,
-        agenda: editedAgenda 
+        agenda: agendaArray 
       });
-      setEvent(prev => prev ? { ...prev, description: editedDescription, agenda: editedAgenda } : null);
+      setEvent(prev => prev ? { ...prev, description: editedDescription, agenda: agendaArray } : null);
       setIsEditModalOpen(false);
     } catch  {
       alert("Fehler beim Speichern.");
@@ -228,24 +240,43 @@ export default function EventDetail() {
   const isHost = Number(user?.id) === Number(event.organizerId) || user?.role === 'admin';
   const progressPercent = Math.min((participants.length / event.maxParticipants) * 100, 100);
 
+  // --- DIE ULTIMATIVE AGENDA LOGIK (FEHLERSICHER) ---
+  const getAgendaItems = (): string[] => {
+    if (!event.agenda) return [];
+    
+    // Fall 1: Es ist bereits ein Array
+    if (Array.isArray(event.agenda)) return event.agenda;
+    
+    // Fall 2: Es ist ein String (entweder JSON-String oder reiner Text)
+    if (typeof event.agenda === 'string') {
+      try {
+        const parsed = JSON.parse(event.agenda);
+        if (Array.isArray(parsed)) return parsed;
+        return [event.agenda];
+      } catch {
+        // Fall 3: Reiner Text mit Zeilenumbrüchen
+        return event.agenda.split('\n').filter(item => item.trim() !== "");
+      }
+    }
+    return [];
+  };
+
+  const agendaItems = getAgendaItems();
+
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 font-sans selection:bg-violet-500/30">
-      {/* Background Decor */}
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-600/10 blur-[120px] rounded-full" />
       </div>
 
       <div className="max-w-[1600px] mx-auto px-6 py-6">
-        {/* Back Button */}
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-zinc-500 hover:text-white mb-8 transition-all group">
           <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" /> 
           <span className="text-sm font-medium">Zurück</span>
         </button>
 
-        {/* Main Grid:items-stretch und feste Höhe für perfekte Symmetrie */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch lg:h-[850px]">
           
-          {/* SPALTE 1: INFO & BESCHREIBUNG (SYMMETRISCH) */}
           <div className="lg:col-span-4 flex flex-col gap-6 h-full">
             <div className="flex gap-4 bg-zinc-900/30 w-fit p-3 rounded-2xl border border-zinc-800/50">
               {Object.entries(timeLeft).map(([label, value]) => (
@@ -276,13 +307,9 @@ export default function EventDetail() {
               <div className="font-bold text-sm">{event.location}</div>
             </div>
 
-            {/* Beschreibung: flex-1 lässt sie bündig mit den anderen Spalten abschließen */}
             <div className="relative bg-zinc-900/30 border border-zinc-800/50 p-8 rounded-[32px] text-zinc-400 text-sm leading-relaxed group flex-1 overflow-y-auto custom-scrollbar">
               {isHost && (
-                <button 
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="absolute top-6 right-6 p-2.5 bg-zinc-800 rounded-2xl opacity-0 group-hover:opacity-100 transition-all hover:bg-violet-600 hover:text-white border border-zinc-700 z-10"
-                >
+                <button onClick={() => setIsEditModalOpen(true)} className="absolute top-6 right-6 p-2.5 bg-zinc-800 rounded-2xl opacity-0 group-hover:opacity-100 transition-all hover:bg-violet-600 hover:text-white border border-zinc-700 z-10">
                   <Edit3 size={16} />
                 </button>
               )}
@@ -290,7 +317,6 @@ export default function EventDetail() {
             </div>
           </div>
 
-          {/* SPALTE 2: BILD, PROGRESS & TABS (SYMMETRISCH) */}
           <div className="lg:col-span-3 flex flex-col gap-6 h-full">
              <div className="relative aspect-square rounded-[48px] overflow-hidden border border-zinc-800 group shadow-2xl flex-shrink-0">
                 <img src={event.imageUrl || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4"} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Preview" />
@@ -311,7 +337,6 @@ export default function EventDetail() {
                {isEventStarted ? <><CheckCircle size={20} /> Event ist Live</> : 'Event jetzt starten'}
              </button>
 
-             {/* Tab-Box am unteren Ende: flex-1 für Symmetrie */}
              <div className="bg-zinc-900/50 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl flex-1 flex flex-col min-h-0">
                 <div className="flex border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-md">
                   <button onClick={() => setBottomTab('map')} className={`flex-1 py-4 flex justify-center transition-all ${bottomTab === 'map' ? 'text-violet-500 bg-zinc-800/30 border-r border-zinc-800' : 'text-zinc-500 border-r border-zinc-800 hover:text-white'}`}><MapIcon size={20}/></button>
@@ -320,10 +345,10 @@ export default function EventDetail() {
                 </div>
                 <div className="flex-1 p-6 overflow-y-auto custom-scrollbar min-h-0">
                    {bottomTab === 'map' && (
-                     <div className="h-full rounded-2xl overflow-hidden grayscale contrast-125 opacity-40">
-                        <MapContainer center={[53.5511, 9.9937]} zoom={11} zoomControl={false} style={{ height: '100%', width: '100%' }}>
-                           <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-                           <Marker position={[53.5511, 9.9937]} />
+                     <div className="h-full rounded-2xl overflow-hidden shadow-inner">
+                        <MapContainer center={[event.lat || 53.5511, event.lng || 9.9937]} zoom={11} zoomControl={false} style={{ height: '100%', width: '100%' }}>
+                           <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+                           <Marker position={[event.lat || 53.5511, event.lng || 9.9937]} />
                         </MapContainer>
                      </div>
                    )}
@@ -333,8 +358,8 @@ export default function EventDetail() {
                            <p className="text-[10px] font-black uppercase text-zinc-600 tracking-[0.2em]">Teilnehmer ({participants.length})</p>
                            {participants.map(p => (
                              <div key={p.id} className="flex items-center gap-3 text-xs bg-zinc-800/30 p-3 rounded-2xl border border-zinc-800/50">
-                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[9px] font-black text-white uppercase">{p.User.username.substring(0,2)}</div>
-                               <span className="font-bold">{p.User.username}</span>
+                               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[9px] font-black text-white uppercase">{p.User?.username?.substring(0,2) || "U"}</div>
+                               <span className="font-bold">{p.User?.username || "Gast"}</span>
                              </div>
                            ))}
                         </div>
@@ -350,9 +375,9 @@ export default function EventDetail() {
                    )}
                    {bottomTab === 'info' && (
                      <div className="space-y-6">
-                        {event.agenda ? (
+                        {agendaItems && agendaItems.length > 0 ? (
                           <div className="relative pl-8 border-l border-zinc-800 space-y-8 py-2">
-                            {event.agenda.split('\n').filter(l => l.trim()).map((line, index) => (
+                            {agendaItems.map((line, index) => (
                               <div key={index} className="relative">
                                 <div className="absolute -left-[37px] top-1 w-4 h-4 rounded-full bg-[#09090b] border-2 border-violet-500 shadow-[0_0_12px_rgba(139,92,246,0.4)]" />
                                 <p className="text-xs font-medium text-zinc-300 leading-snug">{line}</p>
@@ -371,7 +396,6 @@ export default function EventDetail() {
              </div>
           </div>
 
-          {/* SPALTE 3: CHAT (SYMMETRISCH) */}
           <div className="lg:col-span-5 h-full">
             <div className="bg-zinc-900/40 border border-zinc-800 rounded-[48px] h-full flex flex-col overflow-hidden backdrop-blur-2xl shadow-2xl">
               <div className="p-8 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/20">
@@ -410,7 +434,6 @@ export default function EventDetail() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* QUICK REACTIONS */}
               <div className="px-8 py-4 flex flex-wrap gap-2.5 border-t border-zinc-800/50 bg-zinc-900/40">
                 {['🔥', '❤️', '👏', '🙌', '🚀', '✨', '🥳', '🎸', '⚡', '💣', '🎉', '🤩'].map(emoji => (
                   <button key={emoji} onClick={() => sendQuickEmoji(emoji)} className="w-10 h-10 flex items-center justify-center rounded-2xl bg-zinc-800/40 hover:bg-zinc-700 transition-all active:scale-90 text-lg border border-zinc-700/30">
@@ -432,7 +455,6 @@ export default function EventDetail() {
         </div>
       </div>
 
-      {/* EDIT MODAL */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setIsEditModalOpen(false)} />
@@ -444,7 +466,7 @@ export default function EventDetail() {
                 <textarea value={editedDescription} onChange={(e) => setEditedDescription(e.target.value)} className="w-full h-40 bg-zinc-950 border border-zinc-800 rounded-3xl p-5 text-sm text-zinc-300 focus:border-violet-500 outline-none transition-all resize-none custom-scrollbar" />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase text-zinc-500 ml-3 mb-2 block tracking-[0.2em]">Zeitplan (Agenda)</label>
+                <label className="text-[10px] font-black uppercase text-zinc-500 ml-3 mb-2 block tracking-[0.2em]">Zeitplan (Agenda) - Jede Zeile ein Punkt</label>
                 <textarea value={editedAgenda} onChange={(e) => setEditedAgenda(e.target.value)} className="w-full h-40 bg-zinc-950 border border-zinc-800 rounded-3xl p-5 text-sm text-zinc-300 focus:border-violet-500 outline-none transition-all font-mono resize-none custom-scrollbar" placeholder="18:00 - Einlass&#10;19:00 - Start" />
               </div>
             </div>

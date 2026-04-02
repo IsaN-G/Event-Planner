@@ -68,6 +68,7 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
 };
 
 // Einzelnes Event abrufen
+// Einzelnes Event abrufen
 export const getEventById = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = req.params.id as string;
@@ -79,8 +80,15 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
 
     if (!event) throw CreateHttpError(404, "Event nicht gefunden.");
 
+    // DEBUG: Schau in dein BACKEND-Terminal! 
+    // Wenn hier "undefined" steht, fehlt das Feld im Sequelize Model.
+    console.log("BACKEND CHECK - Event Agenda:", event.agenda);
+
     const participantCount = await Registration.count({ where: { eventId } });
-    const isFull = participantCount >= event.maxParticipants;
+    
+    // Falls event.maxParticipants aus irgendeinem Grund String ist, sicherheitshalber konvertieren
+    const maxParticipants = Number(event.maxParticipants) || 100;
+    const isFull = participantCount >= maxParticipants;
 
     let isBooked = false;
     if (userId) {
@@ -90,7 +98,7 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
 
     res.json({
       success: true,
-      event,
+      event: event.get({ plain: true }), // Sicherstellen, dass alle Felder als flaches Objekt gesendet werden
       isBooked,
       isFull,
       currentParticipants: participantCount

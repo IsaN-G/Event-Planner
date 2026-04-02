@@ -1,78 +1,40 @@
-# 📅 EventPlanner - Fullstack Event Management System
+# 📅 EventPlanner - Pro Fullstack Management System
 
-Ein modernes, rollenbasiertes System zur Planung und Buchung von Events. Gebaut mit React, Node.js und PostgreSQL.
+Ein hochmodernes, interaktives System zur Planung, Buchung und Live-Begleitung von Events. Gebaut für Performance und Skalierbarkeit mit einem modernen Tech-Stack.
 
-## 🚀 Features
+## 🚀 Neue & Kern-Features
 
-- **Rollenbasiertes System:** Unterscheidung zwischen `User`, `Organizer` und `Admin`.
-- **Event-Management:** Organizer können Events erstellen, bearbeiten und löschen.
-- **Buchungssystem:** User können Tickets für Events reservieren (inklusive Kapazitätsprüfung).
-- **Admin-Dashboard:** Zentrale Verwaltung von Benutzerrollen und Systemübersicht.
-- **Sicherheit:** - Passwort-Hashing mit `bcrypt` direkt über Sequelize-Hooks.
-  - Gesicherte API-Routen via `JSON Web Tokens (JWT)`.
-  - Zentrale Konfiguration der Umgebungsvariablen.
-- **Responsive Design:** Modernes UI, optimiert für alle Endgeräte mit Tailwind CSS.
+* **Rollenbasiertes System:** Differenzierte Berechtigungen für `User`, `Organizer` und `Admin`.
+* **Live-Event-Steuerung:** Organizer können Events per Knopfdruck "Live" schalten oder den Status jederzeit zurücksetzen.
+* **Interaktiver Live-Chat:** Echtzeit-Kommunikation zwischen Teilnehmern und Hosts während des Events via **Socket.io**.
+* **Dynamisches Preis-System:** Unterstützung für kostenlose und kostenpflichtige Events (inkl. automatischer Typ-Konvertierung von Strings zu Numbers).
+* **Smart Agenda:** Flexibler Zeitplan-Editor für Events mit automatischer Validierung und Array-Mapping.
+* **Geodaten-Integration:** Standort-Visualisierung durch interaktive **Leaflet-Karten** (OpenStreetMap).
+* **Sicherheit:** * Automatisches Passwort-Hashing via `bcrypt` Hooks direkt im Sequelize-Model.
+    * Sichere API-Kommunikation durch `JWT (JSON Web Tokens)`.
+    * Zentrale Konfiguration der Umgebungsvariablen.
 
 ## 🛠 Tech Stack
 
 **Frontend:**
-- React (Vite) mit TypeScript
-- Tailwind CSS für das Styling
-- Lucide-React für Icons
-- Axios für API-Anfragen
+* React (Vite) mit **TypeScript**
+* Tailwind CSS (Modernes Dark-UI Design)
+* Lucide-React für Icons
+* Socket.io-client für Echtzeit-Features
+* Axios für API-Anfragen
+* React-Leaflet für Maps
 
 **Backend:**
-- Node.js & Express
-- Sequelize ORM
-- PostgreSQL Datenbank
-- JWT für die Authentifizierung
+* Node.js & Express
+* Sequelize ORM (PostgreSQL / Supabase)
+* Socket.io (WebSockets)
+* Multer für Bild-Uploads
+* JWT für Authentifizierung
 
 ## 📦 Installation & Setup
 
 ### 1. Repository klonen
 ```bash
-git clone 
+git clone [https://github.com/dein-username/event-planner.git](https://github.com/dein-username/event-planner.git)
 cd event-planner
 
-```
-### 2. Backend einrichten
-```bash
-cd server
-bun install
-
-```
- 
-Erstelle eine .env Datei im server-Ordner:
-
-PORT=4000
-DB_NAME=event_planner
-DB_USER=postgres
-DB_PASSWORD=dein_passwort
-DB_HOST=localhost
-DB_PORT=5432
-JWT_SECRET=supersecret_jwt_key_2026
-NODE_ENV=development
-
-Starte den Server
-
-```bash
-bun run dev
-
-```
-### 3. Frontend einrichten
-Öffne ein zweites Terminal
-```bash
-cd client
-bun install
-bun run dev
-
-```
-#### API Endpunkte (Auszug)
-
-Methode	 Endpunkt	        Beschreibung	   Zugriff
-POST	/api/auth/register	Registrierung	   Öffentlich
-POST	/api/auth/login	    Login & JWT	       Öffentlich
-GET	    /api/events	Alle    Events	           Öffentlich
-POST	/api/events	        Event erstellen	   Organizer/Admin
-POST	/api/bookings/:id	Ticket buchen	   Authentifiziert
-GET	    /api/admin/users	User verwalten	   Admin

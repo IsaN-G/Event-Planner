@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Calendar, MapPin, Users, ArrowLeft, Loader2, Send, 
-  Trash2, Map as MapIcon, CheckCircle, Clock, Edit3
+  Trash2, Map as MapIcon, CheckCircle, Clock, Edit3, XCircle
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -11,7 +11,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import socket from '../services/socket';
 
-// Interfaces
+// Interfaces - "any" durch "string | string[]" ersetzt
 interface EventDetailType {
   id: number;
   title: string;
@@ -22,7 +22,7 @@ interface EventDetailType {
   imageUrl?: string;
   status?: string; 
   organizerId: number;
-  agenda?: any; 
+  agenda?: string | string[]; // Sauberer Typ statt any
   lat?: number;
   lng?: number;
 }
@@ -89,7 +89,6 @@ export default function EventDetail() {
         setEvent(eventData);
         setEditedDescription(eventData.description || "");
         
-        // Editor-Vorbereitung: Verhindert Absturz beim Öffnen des Modals
         if (Array.isArray(eventData.agenda)) {
           setEditedAgenda(eventData.agenda.join('\n'));
         } else if (typeof eventData.agenda === 'string' && eventData.agenda.trim() !== "") {
@@ -169,14 +168,21 @@ export default function EventDetail() {
     }
   };
 
-  const handleStartEvent = async () => {
-    if (!event || isEventStarted) return;
+  // --- TOGGLE LOGIK FÜR DEN LIVE BUTTON ---
+  const handleToggleEventStatus = async () => {
+    if (!event) return;
+    const newStatus = isEventStarted ? 'planned' : 'active';
     try {
-      await api.patch(`/events/${id}/status`, { status: 'active' });
-      setIsEventStarted(true);
+      await api.patch(`/events/${id}/status`, { status: newStatus });
+      setIsEventStarted(newStatus === 'active');
+      
+      const systemMessage = newStatus === 'active' 
+        ? "🚀 Das Event wurde offiziell gestartet!" 
+        : "⏸️ Das Event wurde wieder auf 'Geplant' gesetzt.";
+
       socket.emit("sendMessage", { 
         eventId, 
-        content: "🚀 Das Event wurde offiziell gestartet!", 
+        content: systemMessage, 
         userId: user?.id, 
         username: "SYSTEM",
         type: 'public'
@@ -240,21 +246,15 @@ export default function EventDetail() {
   const isHost = Number(user?.id) === Number(event.organizerId) || user?.role === 'admin';
   const progressPercent = Math.min((participants.length / event.maxParticipants) * 100, 100);
 
-  // --- DIE ULTIMATIVE AGENDA LOGIK (FEHLERSICHER) ---
   const getAgendaItems = (): string[] => {
     if (!event.agenda) return [];
-    
-    // Fall 1: Es ist bereits ein Array
     if (Array.isArray(event.agenda)) return event.agenda;
-    
-    // Fall 2: Es ist ein String (entweder JSON-String oder reiner Text)
     if (typeof event.agenda === 'string') {
       try {
         const parsed = JSON.parse(event.agenda);
         if (Array.isArray(parsed)) return parsed;
         return [event.agenda];
       } catch {
-        // Fall 3: Reiner Text mit Zeilenumbrüchen
         return event.agenda.split('\n').filter(item => item.trim() !== "");
       }
     }
@@ -333,8 +333,23 @@ export default function EventDetail() {
                 </div>
              </div>
 
-             <button onClick={handleStartEvent} disabled={isEventStarted} className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 text-xs flex-shrink-0 ${isEventStarted ? 'bg-emerald-600 text-white cursor-default' : 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-500/30'}`}>
-               {isEventStarted ? <><CheckCircle size={20} /> Event ist Live</> : 'Event jetzt starten'}
+             {/* MODIFIZIERTER BUTTON: Jetzt mit Toggle-Funktion */}
+             <button 
+               onClick={handleToggleEventStatus} 
+               className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 text-xs flex-shrink-0 shadow-lg ${
+                 isEventStarted 
+                 ? 'bg-emerald-600 hover:bg-red-600 text-white group/live' 
+                 : 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-500/30'
+               }`}
+             >
+               {isEventStarted ? (
+                 <>
+                   <span className="group-hover/live:hidden flex items-center gap-2"><CheckCircle size={20} /> Event ist Live</span>
+                   <span className="hidden group-hover/live:flex items-center gap-2"><XCircle size={20} /> Status zurücksetzen</span>
+                 </>
+               ) : (
+                 'Event jetzt starten'
+               )}
              </button>
 
              <div className="bg-zinc-900/50 border border-zinc-800 rounded-[32px] overflow-hidden shadow-2xl flex-1 flex flex-col min-h-0">
@@ -387,7 +402,7 @@ export default function EventDetail() {
                         ) : (
                           <div className="flex flex-col items-center justify-center h-full text-zinc-700 gap-3">
                              <Clock size={32} strokeWidth={1} />
-                             <span className="text-[10px] uppercase font-black tracking-widest italic">Kein Zeitplan</span>
+                             <span className="text-[10px] uppercase font-black tracking-widest italic">Ke Kein Zeitplan</span>
                           </div>
                         )}
                      </div>

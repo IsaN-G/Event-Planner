@@ -4,7 +4,6 @@ import { Event, User, Registration } from '../models';
 import { AuthRequest } from "../types/auth";
 import { Sequelize } from 'sequelize';
 
-// Alle Events abrufen
 export const getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const events = await Event.findAll({
@@ -21,7 +20,6 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// Event erstellen (inkl. neuer Felder)
 export const createEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { 
@@ -51,7 +49,7 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
       maxParticipants: Number(maxParticipants) || 100,
       imageUrl,
       category: category || "Allgemein",
-      status: 'planned', // Standardstatus
+      status: 'planned', 
       lat: lat ? parseFloat(lat) : null,
       lng: lng ? parseFloat(lng) : null,
       organizerId,
@@ -67,8 +65,7 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
-// Einzelnes Event abrufen
-// Einzelnes Event abrufen
+
 export const getEventById = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = req.params.id as string;
@@ -80,13 +77,11 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
 
     if (!event) throw CreateHttpError(404, "Event nicht gefunden.");
 
-    // DEBUG: Schau in dein BACKEND-Terminal! 
-    // Wenn hier "undefined" steht, fehlt das Feld im Sequelize Model.
+   
     console.log("BACKEND CHECK - Event Agenda:", event.agenda);
 
     const participantCount = await Registration.count({ where: { eventId } });
     
-    // Falls event.maxParticipants aus irgendeinem Grund String ist, sicherheitshalber konvertieren
     const maxParticipants = Number(event.maxParticipants) || 100;
     const isFull = participantCount >= maxParticipants;
 
@@ -98,7 +93,7 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
 
     res.json({
       success: true,
-      event: event.get({ plain: true }), // Sicherstellen, dass alle Felder als flaches Objekt gesendet werden
+      event: event.get({ plain: true }), 
       isBooked,
       isFull,
       currentParticipants: participantCount
@@ -108,7 +103,6 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
   }
 };
 
-// Meine Events (Dashboard)
 export const getMyEvents = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
@@ -135,7 +129,7 @@ export const getMyEvents = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
-// Event aktualisieren (Wichtig für dein EditEvent.tsx)
+
 export const updateEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = req.params.id as string;
@@ -145,35 +139,47 @@ export const updateEvent = async (req: AuthRequest, res: Response, next: NextFun
     const event = await Event.findByPk(eventId);
     if (!event) throw CreateHttpError(404, "Event nicht gefunden");
 
-    // Berechtigung prüfen
-    if (Number(event.organizerId) !== Number(userId) && userRole !== 'admin') {
-      throw CreateHttpError(403, "Keine Berechtigung: Nur der Host kann dieses Event bearbeiten.");
-    }
-
-    // Wir extrahieren die Daten und stellen sicher, dass lat/lng Zahlen sind
-    const updateData = { ...req.body };
-    
-    if (updateData.lat) updateData.lat = parseFloat(updateData.lat);
-    if (updateData.lng) updateData.lng = parseFloat(updateData.lng);
-    
-    // Falls ein Bild über Multer hochgeladen wurde
-    if (req.file) {
-      updateData.imageUrl = req.file.path;
-    }
-
-    await event.update(updateData);
-
-    const updated = await Event.findByPk(eventId, {
-      include: [{ model: User, as: "organizer", attributes: ["id", "username"] }]
-    });
-
-    res.json({ success: true, message: "Event erfolgreich aktualisiert! ✨", event: updated });
-  } catch (error) {
-    next(error);
+  
+   if (Number(event.organizerId) !== Number(userId) && userRole !== 'admin') {
+    throw CreateHttpError(403, "Keine Berechtigung: Nur der Host kann dieses Event bearbeiten.");
   }
+
+ 
+  const updateData = { ...req.body };
+  
+  if (updateData.price !== undefined) {
+    updateData.price = Number(updateData.price);
+  }
+  
+  if (updateData.isFree !== undefined) {
+  
+    updateData.isFree = String(updateData.isFree) === 'true';
+  }
+
+  if (updateData.lat) updateData.lat = parseFloat(updateData.lat);
+  if (updateData.lng) updateData.lng = parseFloat(updateData.lng);
+ 
+  if (req.file) {
+    updateData.imageUrl = req.file.path;
+  }
+
+  await event.update(updateData);
+
+  const updated = await Event.findByPk(eventId, {
+    include: [{ model: User, as: "organizer", attributes: ["id", "username"] }]
+  });
+
+  res.json({ 
+    success: true, 
+    message: "Event erfolgreich aktualisiert! ✨", 
+    event: updated 
+  });
+} catch (error) {
+  next(error);
+}
 };
 
-// Event löschen
+
 export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = req.params.id as string;
@@ -194,7 +200,6 @@ export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
-// Statistiken für das Dashboard
 export const getEventAnalytics = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const organizerId = req.user?.id;
@@ -254,7 +259,7 @@ export const getEventAnalytics = async (req: AuthRequest, res: Response, next: N
   }
 };
 
-// Status Update (z.B. für Schnell-Aktionen)
+
 export const updateStatus = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string; 

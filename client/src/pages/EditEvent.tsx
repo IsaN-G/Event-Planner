@@ -62,7 +62,7 @@ export default function EditEvent() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    agenda: '', // NEU: Agenda im State
+    agenda: '', 
     startDate: '',
     endDate: '',
     location: '',
@@ -75,7 +75,7 @@ export default function EditEvent() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false); 
+  const [aiLoading, setAiLoading] = useState(false); // Fix: Setter hinzugefügt
   const [submitError, setSubmitError] = useState('');
   const [mapCoords, setMapCoords] = useState<[number, number]>([52.52, 13.405]);
 
@@ -85,10 +85,15 @@ export default function EditEvent() {
         const res = await api.get(`/events/${id}`);
         const event = res.data.event || res.data; 
         
+        // Falls die Agenda als Array kommt, für das Textarea in String umwandeln
+        const agendaValue = Array.isArray(event.agenda) 
+          ? event.agenda.join('\n') 
+          : (event.agenda || '');
+
         setFormData({
           title: event.title || '',
           description: event.description || '',
-          agenda: event.agenda || '', // NEU: Agenda aus DB laden
+          agenda: agendaValue,
           startDate: event.startDate ? new Date(event.startDate).toISOString().slice(0, 16) : '',
           endDate: event.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : '',
           location: event.location || '',
@@ -142,17 +147,34 @@ export default function EditEvent() {
     widget.open();
   };
 
+  const generateAIDescription = async () => {
+    if (!formData.title) return setSubmitError("Titel fehlt!");
+    setAiLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 1200));
+      const aiText = `✨ Update: ${formData.title} ✨\n\nWir haben das Event optimiert! Sei dabei in ${formData.location || 'unserer Location'} für ein unvergessliches Erlebnis.`;
+      setFormData(prev => ({ ...prev, description: aiText }));
+    } finally { setAiLoading(false); }
+  };
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaveLoading(true);
     setSubmitError('');
     try {
+      const agendaArray = formData.agenda
+        ? formData.agenda.split('\n').map(line => line.trim()).filter(line => line !== "")
+        : [];
+
       await api.put(`/events/${id}`, { 
         ...formData, 
+        price: Number(formData.price), // HIER die Änderung
+        isFree: formData.isFree,       // HIER die Änderung
+        agenda: agendaArray, 
         imageUrl: previewUrl,
         lat: mapCoords[0],
         lng: mapCoords[1]
       });
+      
       navigate('/dashboard');
     } catch (err) {
       const axiosError = err as AxiosError<{ message?: string }>;
@@ -162,16 +184,6 @@ export default function EditEvent() {
     } finally {
       setSaveLoading(false);
     }
-  };
-
-  const generateAIDescription = async () => {
-    if (!formData.title) return setSubmitError("Titel fehlt!");
-    setAiLoading(true);
-    try {
-      await new Promise(r => setTimeout(r, 1200));
-      const aiText = `✨ Update: ${formData.title} ✨\n\nWir haben das Event optimiert! Sei dabei in ${formData.location || 'unserer Location'} für ein unvergessliches Erlebnis.`;
-      setFormData(prev => ({ ...prev, description: aiText }));
-    } finally { setAiLoading(false); }
   };
 
   if (loading) return (
@@ -299,7 +311,6 @@ export default function EditEvent() {
                     </button>
                   </div>
 
-                  {/* Beschreibung */}
                   <div className="relative group">
                     <AlignLeft className="absolute left-6 top-8 text-orange-500" size={20} />
                     <button type="button" onClick={generateAIDescription} disabled={aiLoading} className="absolute right-6 top-6 flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black text-orange-500 hover:bg-orange-500 hover:text-black transition-all z-10">
@@ -309,7 +320,6 @@ export default function EditEvent() {
                       value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
                   </div>
 
-                  {/* NEU: AGENDA / TIMELINE SECTION */}
                   <div className="space-y-4">
                     <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Event Agenda / Line-Up</label>
                     <div className="relative group">

@@ -6,12 +6,14 @@ class Event extends Model {
   declare id: CreationOptional<number>;
   declare title: string;
   declare description?: string;
-  declare agenda?: string; // NEU
+  declare agenda?: string;
   declare startDate: Date;
   declare endDate: Date;
   declare location: string;
   declare maxParticipants: number;
   declare category: string;
+  declare price: number;    
+  declare is_free: boolean;
   declare imageUrl?: string;
   declare organizerId: ForeignKey<User["id"]>;
   declare organizer?: NonAttribute<User>;
@@ -72,6 +74,17 @@ Event.init({
     type: DataTypes.STRING,
     allowNull: false,
     defaultValue: "Allgemein"
+  },
+  price: {                   // NEU
+    type: DataTypes.FLOAT,
+    allowNull: true,
+    defaultValue: 0
+  },
+  isFree: {                  // NEU (achte auf CamelCase/SnakeCase Mapper)
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: true,
+    field: 'is_free' 
   },
   status: { // Optional, falls du den Status-Helper nutzt
     type: DataTypes.STRING,

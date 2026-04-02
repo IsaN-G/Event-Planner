@@ -37,16 +37,16 @@ Event.init({
     allowNull: true,
     defaultValue: "Keine Beschreibung vorhanden."
   },
-  agenda: { // NEU
+  agenda: { 
     type: DataTypes.JSONB,
     allowNull: true,
     defaultValue: ""
   },
   lat: {
-    type: DataTypes.DECIMAL // oder FLOAT
+    type: DataTypes.FLOAT, 
   },
   lng: {
-    type: DataTypes.DECIMAL // oder FLOAT
+    type: DataTypes.FLOAT, 
   },
   startDate: {
     type: DataTypes.DATE,

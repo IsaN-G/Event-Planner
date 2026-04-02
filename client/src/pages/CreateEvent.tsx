@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // useCallback entfernt, da nicht genutzt
+import { useState, useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import { 
   CalendarPlus, MapPin, AlignLeft, Users, 
@@ -12,7 +12,6 @@ import L from 'leaflet';
 import api from '../services/api';
 import { AxiosError } from 'axios';
 
-// --- 1. TYPES & GLOBAL DECLARATIONS (Müssen ganz oben stehen!) ---
 interface CloudinaryResult {
   event: string;
   info: { 
@@ -31,7 +30,6 @@ declare global {
   }
 }
 
-// --- 2. CONSTANTS & LEAFLET FIX ---
 const CATEGORIES = [
   { id: 'Party', icon: <Music size={16} />, color: 'text-pink-400', bg: 'bg-pink-400/10', border: 'border-pink-400/20' },
   { id: 'Sport', icon: <Trophy size={16} />, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' },
@@ -57,7 +55,6 @@ function RecenterMap({ coords }: { coords: [number, number] }) {
   return null;
 }
 
-// --- 3. MAIN COMPONENT ---
 export default function CreateEvent() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -69,7 +66,10 @@ export default function CreateEvent() {
     maxParticipants: 50,
     category: 'Party',
     price: 0,
-    isFree: true
+    isFree: true,
+    lat: 52.5200, 
+    lng: 13.4050,
+    agenda: []
   });
   
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -112,13 +112,20 @@ export default function CreateEvent() {
     } finally { setAiLoading(false); }
   };
 
+  // Standort-Suche & Koordinaten-Update
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (formData.location.length > 3) {
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}`);
           const data = await res.json();
-          if (data?.[0]) setMapCoords([parseFloat(data[0].lat), parseFloat(data[0].lon)]);
+          if (data?.[0]) {
+            const newLat = parseFloat(data[0].lat);
+            const newLon = parseFloat(data[0].lon);
+            setMapCoords([newLat, newLon]);
+            // Hier werden die Koordinaten ins formData für das Backend gespeichert
+            setFormData(prev => ({ ...prev, lat: newLat, lng: newLon }));
+          }
         } catch (err) { console.error(err); }
       }
     }, 800);
@@ -158,9 +165,12 @@ export default function CreateEvent() {
     setSubmitError('');
     try {
       const data = new FormData();
+      // Schickt alle Felder inklusive lat und lng mit
       Object.entries(formData).forEach(([key, value]) => data.append(key, String(value)));
+      
       if (isWidgetUpload && previewUrl) data.append('imageUrl', previewUrl);
       else if (imageFile) data.append('image', imageFile);
+      
       await api.post('/events', data);
       navigate('/dashboard');
     } catch (err) {
@@ -265,8 +275,16 @@ export default function CreateEvent() {
                         <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formData.location)}`} target="_blank" rel="noreferrer" className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-zinc-900 rounded-xl text-zinc-500 hover:text-white transition-colors border border-zinc-800"><Globe size={16} /></a>
                       )}
                     </div>
+
+                    {/* Karte mit key-Fix für automatisches Zentrieren */}
                     <div className="h-44 w-full rounded-[2rem] overflow-hidden border border-zinc-800/50 bg-zinc-950 shadow-inner group transition-all hover:border-violet-500/30">
-                      <MapContainer center={mapCoords} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+                      <MapContainer 
+                        key={`${mapCoords[0]}-${mapCoords[1]}`} 
+                        center={mapCoords} 
+                        zoom={13} 
+                        style={{ height: '100%', width: '100%' }} 
+                        zoomControl={false}
+                      >
                         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
                         <Marker position={mapCoords} />
                         <RecenterMap coords={mapCoords} />

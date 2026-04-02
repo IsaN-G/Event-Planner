@@ -1,14 +1,20 @@
 import axios from 'axios';
 
-// Wir nutzen nur noch '/api'. 
-// Vercel weiß durch die vercel.json, dass alles mit /api zu Render geschickt werden muss.
+// WICHTIG: baseURL leer lassen oder nur '/' nutzen, 
+// da die vercel.json das /api bereits als "Source" erkennt.
 const api = axios.create({
-  baseURL: '/api', 
+  baseURL: '', 
   withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
+  // Wir stellen sicher, dass jeder Request mit /api beginnt, 
+  // damit die vercel.json greift.
+  if (config.url && !config.url.startsWith('/api')) {
+    config.url = `/api${config.url.startsWith('/') ? '' : '/'}${config.url}`;
+  }
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

@@ -4,6 +4,7 @@ import { Event, User, Registration } from '../models';
 import { AuthRequest } from "../types/auth";
 import { Sequelize } from 'sequelize';
 
+// Alle Events abrufen
 export const getAllEvents = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const events = await Event.findAll({
@@ -20,12 +21,18 @@ export const getAllEvents = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
+// Event erstellen (inkl. neuer Felder)
 export const createEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { title, description, agenda, startDate, endDate, location, maxParticipants, category } = req.body;
+    const { 
+      title, description, agenda, startDate, endDate, 
+      location, maxParticipants, category, lat, lng 
+    } = req.body;
+    
     const organizerId = req.user?.id;
 
     if (!organizerId) throw CreateHttpError(401, "Nicht autorisiert");
+    
     if (new Date(startDate) >= new Date(endDate)) {
       throw CreateHttpError(400, "Das Event muss nach dem Start enden.");
     }
@@ -37,13 +44,16 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
     const event = await Event.create({
       title,
       description: description || "Keine Beschreibung vorhanden.",
-      agenda: agenda || "", // NEU: Agenda beim Erstellen speichern
+      agenda: agenda || "",
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       location,
       maxParticipants: Number(maxParticipants) || 100,
       imageUrl,
       category: category || "Allgemein",
+      status: 'planned', // Standardstatus
+      lat: lat ? parseFloat(lat) : null,
+      lng: lng ? parseFloat(lng) : null,
       organizerId,
     });
 
@@ -57,6 +67,7 @@ export const createEvent = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
+// Einzelnes Event abrufen
 export const getEventById = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = req.params.id as string;
@@ -89,6 +100,7 @@ export const getEventById = async (req: AuthRequest, res: Response, next: NextFu
   }
 };
 
+// Meine Events (Dashboard)
 export const getMyEvents = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
@@ -115,6 +127,7 @@ export const getMyEvents = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
+// Event aktualisieren (Wichtig für dein EditEvent.tsx)
 export const updateEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = req.params.id as string;
@@ -124,13 +137,18 @@ export const updateEvent = async (req: AuthRequest, res: Response, next: NextFun
     const event = await Event.findByPk(eventId);
     if (!event) throw CreateHttpError(404, "Event nicht gefunden");
 
+    // Berechtigung prüfen
     if (Number(event.organizerId) !== Number(userId) && userRole !== 'admin') {
       throw CreateHttpError(403, "Keine Berechtigung: Nur der Host kann dieses Event bearbeiten.");
     }
 
-    // Nimmt automatisch alle Felder aus req.body (inklusive agenda)
+    // Wir extrahieren die Daten und stellen sicher, dass lat/lng Zahlen sind
     const updateData = { ...req.body };
     
+    if (updateData.lat) updateData.lat = parseFloat(updateData.lat);
+    if (updateData.lng) updateData.lng = parseFloat(updateData.lng);
+    
+    // Falls ein Bild über Multer hochgeladen wurde
     if (req.file) {
       updateData.imageUrl = req.file.path;
     }
@@ -147,6 +165,7 @@ export const updateEvent = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
+// Event löschen
 export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = req.params.id as string;
@@ -167,6 +186,7 @@ export const deleteEvent = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
+// Statistiken für das Dashboard
 export const getEventAnalytics = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const organizerId = req.user?.id;
@@ -226,6 +246,7 @@ export const getEventAnalytics = async (req: AuthRequest, res: Response, next: N
   }
 };
 
+// Status Update (z.B. für Schnell-Aktionen)
 export const updateStatus = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string; 

@@ -38,7 +38,9 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 function RecenterMap({ coords }: { coords: [number, number] }) {
   const map = useMap();
-  map.setView(coords, 13);
+  useEffect(() => {
+    map.setView(coords, 13);
+  }, [coords, map]);
   return null;
 }
 
@@ -60,6 +62,7 @@ export default function EditEvent() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    agenda: '', // NEU: Agenda im State
     startDate: '',
     endDate: '',
     location: '',
@@ -80,19 +83,26 @@ export default function EditEvent() {
     const fetchEvent = async () => {
       try {
         const res = await api.get(`/events/${id}`);
-        const event = res.data;
+        const event = res.data.event || res.data; 
+        
         setFormData({
           title: event.title || '',
           description: event.description || '',
+          agenda: event.agenda || '', // NEU: Agenda aus DB laden
           startDate: event.startDate ? new Date(event.startDate).toISOString().slice(0, 16) : '',
           endDate: event.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : '',
           location: event.location || '',
           maxParticipants: event.maxParticipants || 50,
           category: event.category || 'Party',
           price: event.price || 0,
-          isFree: (event.price === 0 || !event.price)
+          isFree: (Number(event.price) === 0 || !event.price)
         });
+
         if (event.imageUrl) setPreviewUrl(event.imageUrl);
+        
+        if (event.lat && event.lng) {
+          setMapCoords([parseFloat(event.lat), parseFloat(event.lng)]);
+        }
       } catch {
         setSubmitError("Event konnte nicht geladen werden.");
       } finally {
@@ -121,20 +131,7 @@ export default function EditEvent() {
       {
         cloudName: 'dhqz1dl3p', 
         uploadPreset: 'ml_default',
-        theme: 'dark',
-        styles: {
-          palette: {
-            window: "#09090b",
-            windowBorder: "#27272a",
-            tabIcon: "#8b5cf6",
-            menuIcons: "#d4d4d8",
-            textDark: "#000000",
-            textLight: "#ffffff",
-            link: "#a78bfa",
-            action: "#7c3aed",
-            sourceBg: "#09090b"
-          }
-        }
+        theme: 'dark'
       },
       (err, result) => {
         if (!err && result?.event === "success") { 
@@ -150,11 +147,14 @@ export default function EditEvent() {
     setSaveLoading(true);
     setSubmitError('');
     try {
-      // Wir senden die Daten an die API
-      await api.put(`/events/${id}`, { ...formData, imageUrl: previewUrl });
+      await api.put(`/events/${id}`, { 
+        ...formData, 
+        imageUrl: previewUrl,
+        lat: mapCoords[0],
+        lng: mapCoords[1]
+      });
       navigate('/dashboard');
     } catch (err) {
-      // Hier nutzen wir jetzt AxiosError, um die Warnung zu löschen
       const axiosError = err as AxiosError<{ message?: string }>;
       setSubmitError(
         axiosError.response?.data?.message || "Fehler beim Aktualisieren des Events."
@@ -184,14 +184,15 @@ export default function EditEvent() {
     <div className="min-h-screen bg-zinc-950 py-12 px-6 text-white selection:bg-orange-500/30">
       <div className="max-w-6xl mx-auto">
         
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
           <div className="flex items-center gap-4">
             <div className="p-4 bg-orange-600 rounded-2xl shadow-xl shadow-orange-500/20">
               <Save size={32} />
             </div>
             <div>
-              <h1 className="text-5xl font-black tracking-tighter uppercase italic leading-none text-white">Event <span className="text-orange-500 text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-600">Edit</span></h1>
+              <h1 className="text-5xl font-black tracking-tighter uppercase italic leading-none text-white">
+                Event <span className="text-orange-500">Edit</span>
+              </h1>
               <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2 ml-1">Configuration Mode</p>
             </div>
           </div>
@@ -202,12 +203,10 @@ export default function EditEvent() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           
-          {/* Form Column */}
           <div className="lg:col-span-2">
             <form onSubmit={handleUpdate} className="space-y-8">
               <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-[3rem] p-10 backdrop-blur-xl shadow-2xl space-y-12">
                 
-                {/* Category Selection */}
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Change Vibe</label>
                   <div className="flex flex-wrap gap-3">
@@ -223,7 +222,6 @@ export default function EditEvent() {
                   </div>
                 </div>
 
-                {/* Title & Image */}
                 <div className="space-y-6">
                   <div className="relative group">
                     <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-orange-500" size={20} />
@@ -249,7 +247,6 @@ export default function EditEvent() {
                   </div>
                 </div>
 
-                {/* Timing & Map */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-6">
                     <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Schedule</label>
@@ -273,7 +270,6 @@ export default function EditEvent() {
                         placeholder="Search location..." value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
                     </div>
                     
-                    {/* DIE KARTE - FIXT DIE ESLINT WARNUNGEN */}
                     <div className="h-40 w-full rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950">
                       <MapContainer center={mapCoords} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
@@ -290,7 +286,6 @@ export default function EditEvent() {
                   </div>
                 </div>
 
-                {/* Price & Description */}
                 <div className="space-y-8">
                   <div className="flex gap-4">
                     <div className="relative flex-1">
@@ -299,18 +294,30 @@ export default function EditEvent() {
                         value={formData.price} onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) || 0 })} />
                     </div>
                     <button type="button" onClick={() => setFormData({...formData, isFree: !formData.isFree, price: 0})} 
-                      className={`px-8 rounded-2xl text-[10px] font-black transition-all border ${formData.isFree ? 'bg-orange-600 border-orange-500 text-black shadow-lg shadow-orange-500/20' : 'bg-zinc-800 border-zinc-700 text-zinc-600'}`}>
+                      className={`px-8 rounded-2xl text-[10px] font-black transition-all border ${formData.isFree ? 'bg-orange-600 border-orange-500 text-black' : 'bg-zinc-800 border-zinc-700 text-zinc-600'}`}>
                       {formData.isFree ? 'FREE' : 'PAID'}
                     </button>
                   </div>
 
+                  {/* Beschreibung */}
                   <div className="relative group">
                     <AlignLeft className="absolute left-6 top-8 text-orange-500" size={20} />
-                    <button type="button" onClick={generateAIDescription} disabled={aiLoading} className="absolute right-6 top-6 flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black text-orange-500 hover:bg-orange-500 hover:text-black transition-all z-10 disabled:opacity-50">
+                    <button type="button" onClick={generateAIDescription} disabled={aiLoading} className="absolute right-6 top-6 flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black text-orange-500 hover:bg-orange-500 hover:text-black transition-all z-10">
                       {aiLoading ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />} RE-WRITE AI
                     </button>
                     <textarea rows={6} className="w-full bg-zinc-950/50 border border-zinc-800 rounded-[32px] pl-16 pr-8 py-8 outline-none focus:border-orange-500 transition-all resize-none text-zinc-400 italic"
                       value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                  </div>
+
+                  {/* NEU: AGENDA / TIMELINE SECTION */}
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-zinc-600 uppercase tracking-widest ml-1">Event Agenda / Line-Up</label>
+                    <div className="relative group">
+                      <Clock className="absolute left-6 top-8 text-orange-500" size={20} />
+                      <textarea rows={6} className="w-full bg-zinc-950/50 border border-zinc-800 rounded-[32px] pl-16 pr-8 py-8 outline-none focus:border-orange-500 transition-all resize-none text-zinc-400 font-mono text-sm"
+                        placeholder="14:00 - Einlass&#10;15:00 - Start&#10;..." 
+                        value={formData.agenda} onChange={(e) => setFormData({ ...formData, agenda: e.target.value })} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -327,7 +334,6 @@ export default function EditEvent() {
             </form>
           </div>
 
-          {/* Live Preview Column */}
           <div className="hidden lg:block sticky top-8">
             <div className="bg-zinc-900 border border-zinc-800 rounded-[4rem] overflow-hidden shadow-3xl flex flex-col min-h-[650px]">
               <div className="h-72 bg-zinc-800 relative">
@@ -352,7 +358,6 @@ export default function EditEvent() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

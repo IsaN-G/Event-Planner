@@ -15,7 +15,9 @@ class Event extends Model {
   declare imageUrl?: string;
   declare organizerId: ForeignKey<User["id"]>;
   declare organizer?: NonAttribute<User>;
-  declare status?: string; // Falls für den Status-Update benötigt
+  declare status?: string; 
+  declare lat?: number; 
+  declare lng?: number; 
 }
 
 Event.init({
@@ -37,6 +39,12 @@ Event.init({
     type: DataTypes.TEXT,
     allowNull: true,
     defaultValue: ""
+  },
+  lat: {
+    type: DataTypes.DECIMAL // oder FLOAT
+  },
+  lng: {
+    type: DataTypes.DECIMAL // oder FLOAT
   },
   startDate: {
     type: DataTypes.DATE,

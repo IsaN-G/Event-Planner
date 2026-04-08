@@ -3,7 +3,6 @@ import {
   Ticket, 
   Calendar, 
   MapPin, 
-
   ArrowLeft, 
   QrCode, 
   ExternalLink, 
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import type { AxiosError } from 'axios';
 
 interface BookedEvent {
   id: number;
@@ -29,16 +29,30 @@ export default function MyTickets() {
   useEffect(() => {
     const fetchTickets = async () => {
       try {
+        setLoading(true);
         const res = await api.get('/bookings/my-tickets');
-        setTickets(res.data.bookings || res.data || []);
+        
+        const bookingsData = res.data?.bookings || res.data || [];
+        setTickets(Array.isArray(bookingsData) ? bookingsData : []);
+        
       } catch (err) {
-        console.error(err);
+        console.error("Fehler beim Laden der Tickets:", err);
+        
+        const axiosError = err as AxiosError;
+        
+        // Bei 401 (nicht eingeloggt) zum Login weiterleiten
+        if (axiosError.response?.status === 401) {
+          navigate('/login');
+        }
+        
+        setTickets([]);        // Immer ein leeres Array setzen
       } finally {
         setLoading(false);
       }
     };
+    
     fetchTickets();
-  }, []);
+  }, [navigate]);
 
   const handleShare = async (event: BookedEvent) => {
     const shareData = {
@@ -50,7 +64,7 @@ export default function MyTickets() {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch  {
+      } catch {
         console.log('Teilen abgebrochen');
       }
     } else {
@@ -164,19 +178,15 @@ export default function MyTickets() {
                   </button>
                 </div>
 
-                {/* QR Code Section (The Stub / Abrisskante) */}
+                {/* QR Code Section */}
                 <div className="md:w-64 bg-zinc-950/50 border-t md:border-t-0 md:border-l border-zinc-800/50 p-8 flex flex-col items-center justify-center relative">
-                  
-                  {/* Dekorative Perforation (Löcher) */}
                   <div className="hidden md:block absolute top-[-16px] left-[-16px] w-8 h-8 bg-[#09090b] rounded-full border border-zinc-800/50" />
                   <div className="hidden md:block absolute bottom-[-16px] left-[-16px] w-8 h-8 bg-[#09090b] rounded-full border border-zinc-800/50" />
 
-                  {/* QR Code */}
                   <div className="bg-white p-3 rounded-2xl mb-6 shadow-[0_0_40px_rgba(139,92,246,0.15)] group-hover:scale-105 transition-all duration-500">
                     <QrCode size={100} className="text-black" strokeWidth={1.5} />
                   </div>
                   
-                  {/* Share / Transfer Action */}
                   <div className="text-center w-full space-y-4">
                     <div>
                       <p className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-1">Pass Identity</p>

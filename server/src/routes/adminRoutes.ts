@@ -7,6 +7,7 @@ const router = Router();
 
 router.use(authMiddleware, isAdmin);
 
+
 // Die neue Heartbeat-Route
 router.post("/heartbeat", updateHeartbeat); 
 

@@ -9,5 +9,5 @@ router.use(authMiddleware);
 
 router.get("/:eventId", getEventMessages);
 router.post("/:eventId", sendMessage);
-router.delete("/message/:messageId", authMiddleware, deleteMessage);
+router.delete("/message/:messageId", deleteMessage);
 export default router;

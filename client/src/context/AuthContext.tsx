@@ -1,7 +1,7 @@
+// src/context/AuthContext.tsx
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { type AxiosError } from 'axios';
-import api from '../services/api'; 
-
+import api from '../services/api';
 
 interface User {
   id: number;
@@ -12,81 +12,79 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
 
-
-const getInitialToken = () => localStorage.getItem('token');
-const getInitialUser = (): User | null => {
-  const user = localStorage.getItem('user');
-  try {
-    return user ? JSON.parse(user) : null;
-  } catch {
-    return null;
-  }
-};
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(getInitialToken());
-  const [user, setUser] = useState<User | null>(getInitialUser());
-  
-  
-  const [isLoading] = useState(false); 
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
- 
+  // Beim App-Start versuchen, den User über Refresh Token wiederherzustellen
   useEffect(() => {
-    if (token) {
-      api.defaults.headers.common.Authorization = `Bearer ${token}`;
-    } else {
-      delete api.defaults.headers.common.Authorization;
-    }
-  }, [token]);
+    const restoreUser = async () => {
+      try {
+        const res = await api.post('/auth/refresh', {}, { withCredentials: true });
+        const accessToken = res.data.accessToken;
+
+        api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+
+        // User-Daten aus localStorage holen (vorübergehend)
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch  {
+        console.log("Kein gültiges Refresh Token gefunden.");
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    restoreUser();
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
-   
-      const res = await api.post<{ token: string; user: User }>(
-        '/auth/login',
-        { email, password }
-      );
+      const res = await api.post('/auth/login', { email, password }, { withCredentials: true });
 
-      const { token: newToken, user: newUser } = res.data;
+      const { accessToken, user: loggedInUser } = res.data;
 
-      localStorage.setItem('token', newToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      // Token für zukünftige Requests setzen
+      api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
 
-      setToken(newToken);
-      setUser(newUser);
+      // User im State + localStorage speichern
+      localStorage.setItem('user', JSON.stringify(loggedInUser));
+      setUser(loggedInUser);
     } catch (err) {
-    
       const error = err as AxiosError<{ message?: string }>;
       throw new Error(error.response?.data?.message ?? 'Login fehlgeschlagen');
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout', {}, { withCredentials: true });
+    } catch  {
+      console.log("Logout fehlgeschlagen, aber lokal bereinigen");
+    }
+
     localStorage.removeItem('user');
-    setToken(null);
+    delete api.defaults.headers.common.Authorization;
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
 }
-
-
-// eslint-disable-next-line react-refresh/only-export-components
+/* eslint-disable react-refresh/only-export-components */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

@@ -3,32 +3,31 @@ import axios from 'axios';
 // WICHTIG: baseURL leer lassen oder nur '/' nutzen, 
 // da die vercel.json das /api bereits als "Source" erkennt.
 const api = axios.create({
-  baseURL: '', 
+  baseURL: '/api',
   withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  // Wir stellen sicher, dass jeder Request mit /api beginnt, 
-  // damit die vercel.json greift.
-  if (config.url && !config.url.startsWith('/api')) {
-    config.url = `/api${config.url.startsWith('/') ? '' : '/'}${config.url}`;
-  }
-  
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-    
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+  response => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest?._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const res = await api.post('/auth/refresh', {}, { withCredentials: true }); // ← api statt axios
+        const newToken = res.data.accessToken;
+
+        api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+        return api(originalRequest);
+      } catch (refreshError) {
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
     }
     return Promise.reject(error);
   }

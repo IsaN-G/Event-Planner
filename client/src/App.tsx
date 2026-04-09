@@ -15,8 +15,8 @@ import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 
 function App() {
-  const { user } = useAuth();
-
+  const { user, isLoading } = useAuth();
+  if (isLoading) return <div>Lädt...</div>;
   const isAuthenticated = !!user;
   const isOrganizerOrAdmin = user?.role === 'admin' || user?.role === 'organizer';
   const isAdmin = user?.role === 'admin';

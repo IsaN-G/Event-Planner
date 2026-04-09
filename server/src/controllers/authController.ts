@@ -31,7 +31,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
   }
 };
 
-// authController.ts - login Funktion anpassen
+
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
@@ -46,26 +46,24 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const accessToken = jwt.sign(
       { id: user.id, username: user.username, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: "15m" }   // kurzlebig
+      { expiresIn: "15m" }   
     );
 
     const refreshToken = jwt.sign(
       { id: user.id },
       JWT_SECRET,
-      { expiresIn: "7d" }    // längerlebig
+      { expiresIn: "7d" }    
     );
-
-    // httpOnly Cookie setzen
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',     // wichtig für HTTPS
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',  // ← DAS IST DER FIX
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
     });
 
     res.json({
       message: "Login erfolgreich",
-      accessToken,                    // nur Access Token zurückgeben
+      accessToken,                    
       user: { 
         id: user.id, 
         username: user.username, 
@@ -77,10 +75,10 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     next(error); 
   }
 };
-// NEU: Heartbeat-Funktion, um den Online-Status aktuell zu halten
+
 export const updateHeartbeat = async (req: any, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.id; // Aus dem Auth-Middleware Token
+    const userId = req.user?.id; 
     if (!userId) return res.status(401).json({ message: "Nicht autorisiert" });
 
     await User.update(
@@ -111,9 +109,14 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
       { expiresIn: "15m" }
     );
 
-    // Optional: Refresh Token Rotation (neues Refresh Token ausstellen)
     const newRefreshToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "7d" });
-    res.cookie('refreshToken', newRefreshToken, { /* gleiche Optionen wie oben */ });
+
+    res.cookie('refreshToken', newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',     // wichtig für HTTPS
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',  // ← DAS IST DER FIX
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
+    });
 
     res.json({ accessToken: newAccessToken });
   } catch (err) {

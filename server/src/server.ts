@@ -14,7 +14,7 @@ import adminRoutes from './routes/adminRoutes';
 import bookingRoutes from './routes/bookingRoutes';
 import chatRoutes from "./routes/chatRoutes";
 
-// WICHTIG: Message Modell importieren
+
 import Message from "./models/Message";
 
 console.log("DB-URL vorhanden:", !!process.env.DATABASE_URL);
@@ -24,7 +24,7 @@ const httpServer = createServer(app);
 
 const port = process.env.PORT || 4000;
 
-// ====================== MIDDLEWARE ======================
+
 app.use(cookieParser());
 app.use(express.json());
 app.use(morgan("dev"));
@@ -39,25 +39,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-/*app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || "*");
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    return res.sendStatus(200);
-  }
-  next();
-});*/
 
-// ====================== ROUTES ======================
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/chat', chatRoutes);
 
-// Öffentliche Root-Route
+
 app.get("/", (req, res) => {
   res.json({ 
     message: "Event Planner Backend läuft! 🚀",
@@ -65,10 +54,9 @@ app.get("/", (req, res) => {
   });
 });
 
-// Error Handler muss ALS LETZTES kommen!
+
 app.use(errorHandler);
 
-// ====================== SOCKET.IO ======================
 const io = new Server(httpServer, {
   cors: {
     origin: [
@@ -133,7 +121,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// ====================== SERVER START + ADMIN FIX ======================
+
 const startServer = async () => {
   try {
     await sequelize.authenticate();

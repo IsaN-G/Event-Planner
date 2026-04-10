@@ -13,7 +13,7 @@ export const getAllUsers = async (req: AuthRequest, res: Response, next: NextFun
         'email', 
         'role', 
         'createdAt', 
-        'lastLogin', // WICHTIG: Muss in den Attributen stehen
+        'lastLogin', 
         [Sequelize.fn('COUNT', Sequelize.col('registrations.id')), 'bookedEventsCount']
       ],
       include: [{ 
@@ -29,8 +29,7 @@ export const getAllUsers = async (req: AuthRequest, res: Response, next: NextFun
     const usersWithData = users.map((user: any) => {
       const plainUser = user.get({ plain: true });
       
-      // LOGIK FÜR DEN ONLINE-STATUS:
-      // Wir prüfen, ob der letzte Login weniger als 15 Minuten her ist
+   
       const isActuallyOnline = plainUser.lastLogin 
         ? (new Date().getTime() - new Date(plainUser.lastLogin).getTime()) < 15 * 60 * 1000
         : false;
@@ -38,7 +37,7 @@ export const getAllUsers = async (req: AuthRequest, res: Response, next: NextFun
       return {
         ...plainUser,
         bookedEventsCount: parseInt(plainUser.bookedEventsCount || '0'),
-        isActive: isActuallyOnline // Wenn true, leuchtet der Punkt im Frontend grün
+        isActive: isActuallyOnline 
       };
     });
 
@@ -83,7 +82,7 @@ export const updateUserRole = async (req: AuthRequest, res: Response, next: Next
   } catch (error) { next(error); }
 };
 
-// adminController.ts
+
 export const updateHeartbeat = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;

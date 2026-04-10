@@ -75,18 +75,18 @@ Event.init({
     allowNull: false,
     defaultValue: "Allgemein"
   },
-  price: {                   // NEU
+  price: {                   
     type: DataTypes.FLOAT,
     allowNull: true,
     defaultValue: 0
   },
-  isFree: {                  // NEU (achte auf CamelCase/SnakeCase Mapper)
+  isFree: {                  
     type: DataTypes.BOOLEAN,
     allowNull: true,
     defaultValue: true,
     field: 'is_free' 
   },
-  status: { // Optional, falls du den Status-Helper nutzt
+  status: { 
     type: DataTypes.STRING,
     allowNull: true,
     defaultValue: "planned"

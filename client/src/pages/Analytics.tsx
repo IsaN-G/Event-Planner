@@ -70,12 +70,12 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white py-16 px-6 relative overflow-hidden">
-      {/* Background Glow */}
+     
       <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-violet-600/5 blur-[140px] rounded-full pointer-events-none" />
 
       <div className="max-w-[1400px] mx-auto relative z-10">
         
-        {/* HEADER SECTION */}
+      
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="space-y-4">
             <button 
@@ -95,7 +95,6 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* TOP LEVEL STATS - BOLD & MINIMAL */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
           <div className="relative group">
             <div className="absolute inset-0 bg-violet-600/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
@@ -125,7 +124,7 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* TOP EVENTS - REIMAGINED AS A RANKING */}
+       
         <div className="mb-24">
           <div className="flex items-center gap-4 mb-10">
             <Trophy size={20} className="text-violet-500" />
@@ -167,7 +166,7 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* CATEGORY STATS - GRID CARDS */}
+       
         <div>
           <div className="flex items-center gap-4 mb-10">
             <Layers size={20} className="text-fuchsia-500" />

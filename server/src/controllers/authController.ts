@@ -56,8 +56,8 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     );
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: true,                    // Immer true bei HTTPS (Vercel + Render)
-      sameSite: 'none',                // Muss 'none' sein bei Cross-Domain
+      secure: true,                    
+      sameSite: 'none',                
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -113,9 +113,9 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
 
     res.cookie('refreshToken', newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',     // wichtig für HTTPS
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',  // ← DAS IST DER FIX
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
+      secure: process.env.NODE_ENV === 'production',     
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',  
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
 
     res.json({ accessToken: newAccessToken });

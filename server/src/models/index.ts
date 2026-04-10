@@ -1,11 +1,11 @@
-// models/index.ts
+
 import sequelize from "../config/sequelize";
 import User from "./User";
 import Event from "./Event";
 import Registration from "./Registration";
 import Message from "./Message";
 
-// Organizer Beziehung
+
 User.hasMany(Event, {
   foreignKey: "organizerId",
   as: "organizedEvents",
@@ -17,7 +17,7 @@ Event.belongsTo(User, {
   as: "organizer",
 });
 
-// Buchungen
+
 User.hasMany(Registration, {
   foreignKey: 'userId',
   as: 'registrations'
@@ -36,7 +36,7 @@ Registration.belongsTo(Event, {
   foreignKey: 'eventId'
 });
 
-// Many-to-Many für Bookings
+
 User.belongsToMany(Event, {
   through: Registration,
   foreignKey: 'userId',
@@ -51,7 +51,7 @@ Event.belongsToMany(User, {
   as: 'participants'
 });
 
-// ====================== CHAT BEZIEHUNGEN ======================
+
 User.hasMany(Message, {
   foreignKey: 'userId',
   as: 'messages'

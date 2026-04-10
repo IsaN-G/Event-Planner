@@ -12,7 +12,7 @@ import L from 'leaflet';
 import api from '../services/api';
 import { AxiosError } from 'axios';
 
-// --- TYPES & LEAFLET FIX ---
+
 interface CloudinaryResult {
   event: string;
   info: { secure_url: string; };
@@ -75,7 +75,7 @@ export default function EditEvent() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false); // Fix: Setter hinzugefügt
+  const [aiLoading, setAiLoading] = useState(false); 
   const [submitError, setSubmitError] = useState('');
   const [mapCoords, setMapCoords] = useState<[number, number]>([52.52, 13.405]);
 
@@ -85,7 +85,7 @@ export default function EditEvent() {
         const res = await api.get(`/events/${id}`);
         const event = res.data.event || res.data; 
         
-        // Falls die Agenda als Array kommt, für das Textarea in String umwandeln
+        
         const agendaValue = Array.isArray(event.agenda) 
           ? event.agenda.join('\n') 
           : (event.agenda || '');
@@ -167,8 +167,8 @@ export default function EditEvent() {
 
       await api.put(`/events/${id}`, { 
         ...formData, 
-        price: Number(formData.price), // HIER die Änderung
-        isFree: formData.isFree,       // HIER die Änderung
+        price: Number(formData.price), 
+        isFree: formData.isFree,       
         agenda: agendaArray, 
         imageUrl: previewUrl,
         lat: mapCoords[0],

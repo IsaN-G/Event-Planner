@@ -10,5 +10,5 @@ export interface UserPayload extends jsonwebtokenPayload {
 
 export interface AuthRequest extends Request {
   user?: UserPayload;
-  file?: Express.Multer.File; // Neu hinzugefügt für Cloudinary/Multer
+  file?: Express.Multer.File; 
 }

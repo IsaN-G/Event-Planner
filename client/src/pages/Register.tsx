@@ -45,13 +45,12 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-[#09090b] flex items-center justify-center px-6 py-16 relative overflow-hidden">
-      {/* Background Decor */}
+     
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-violet-600/10 blur-[140px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-fuchsia-600/5 blur-[140px] rounded-full pointer-events-none" />
 
       <div className="max-w-2xl w-full relative z-10">
         
-        {/* Header Section */}
         <div className="text-center mb-12">
           <div className="inline-flex p-5 bg-white text-black rounded-[28px] shadow-2xl mb-8 transform rotate-3 group hover:rotate-0 transition-transform duration-500">
             <Zap size={40} strokeWidth={2.5} />
@@ -71,7 +70,6 @@ export default function Register() {
           </div>
         )}
 
-        {/* Register Card */}
         <div className="bg-zinc-900/40 border border-zinc-800/50 backdrop-blur-xl rounded-[48px] p-10 md:p-14 shadow-3xl">
           <form onSubmit={handleSubmit} className="space-y-10">
             
@@ -122,7 +120,7 @@ export default function Register() {
               </div>
             </div>
 
-            {/* Role Selection - Upgraded */}
+           
             <div className="space-y-6">
               <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] ml-2 text-center">Choose your path</label>
               <div className="grid grid-cols-2 gap-6">

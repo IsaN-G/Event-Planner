@@ -112,7 +112,7 @@ export default function CreateEvent() {
     } finally { setAiLoading(false); }
   };
 
-  // Standort-Suche & Koordinaten-Update
+ 
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (formData.location.length > 3) {
@@ -123,7 +123,7 @@ export default function CreateEvent() {
             const newLat = parseFloat(data[0].lat);
             const newLon = parseFloat(data[0].lon);
             setMapCoords([newLat, newLon]);
-            // Hier werden die Koordinaten ins formData für das Backend gespeichert
+         
             setFormData(prev => ({ ...prev, lat: newLat, lng: newLon }));
           }
         } catch (err) { console.error(err); }
@@ -165,7 +165,7 @@ export default function CreateEvent() {
     setSubmitError('');
     try {
       const data = new FormData();
-      // Schickt alle Felder inklusive lat und lng mit
+     
       Object.entries(formData).forEach(([key, value]) => data.append(key, String(value)));
       
       if (isWidgetUpload && previewUrl) data.append('imageUrl', previewUrl);
@@ -183,7 +183,7 @@ export default function CreateEvent() {
     <div className="min-h-screen bg-zinc-950 py-12 px-6 text-white font-sans selection:bg-violet-500/30">
       <div className="max-w-6xl mx-auto">
         
-        {/* Header Section */}
+     
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-8 items-end">
           <div className="lg:col-span-2 flex items-center gap-5">
             <div className="p-4 bg-violet-600 rounded-2xl shadow-2xl shadow-violet-500/20">
@@ -204,7 +204,7 @@ export default function CreateEvent() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-[3rem] p-10 space-y-12 backdrop-blur-xl shadow-2xl">
                 
-                {/* Vibe Picker */}
+            
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Event Vibe</label>
                   <div className="flex flex-wrap gap-3">
@@ -220,7 +220,7 @@ export default function CreateEvent() {
                   </div>
                 </div>
 
-                {/* Title & Image */}
+         
                 <div className="space-y-6">
                   <div className="relative group">
                     <Tag className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-400 transition-colors" size={22} />
@@ -249,7 +249,7 @@ export default function CreateEvent() {
                   </div>
                 </div>
 
-                {/* Details Grid */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-6">
                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Timeline</label>
@@ -276,7 +276,7 @@ export default function CreateEvent() {
                       )}
                     </div>
 
-                    {/* Karte mit key-Fix für automatisches Zentrieren */}
+                  
                     <div className="h-44 w-full rounded-[2rem] overflow-hidden border border-zinc-800/50 bg-zinc-950 shadow-inner group transition-all hover:border-violet-500/30">
                       <MapContainer 
                         key={`${mapCoords[0]}-${mapCoords[1]}`} 
@@ -293,7 +293,7 @@ export default function CreateEvent() {
                   </div>
                 </div>
 
-                {/* Price & Description */}
+          
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="relative">
@@ -340,7 +340,7 @@ export default function CreateEvent() {
             </form>
           </div>
 
-          {/* Sticky Preview */}
+     
           <div className="hidden lg:block sticky top-8">
               <div className="bg-zinc-900 border border-zinc-800 rounded-[4rem] overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col min-h-[680px] group/card hover:scale-[1.02] transition-all duration-700">
                 <div className="h-80 bg-zinc-950 relative overflow-hidden">

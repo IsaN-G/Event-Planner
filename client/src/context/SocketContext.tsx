@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-// src/context/SocketContext.tsx
+
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import socket from '../services/socket';
 import { useAuth } from './AuthContext';

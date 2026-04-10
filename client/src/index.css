@@ -1,34 +1,61 @@
 @import "tailwindcss";
 
-/* Basis-Stile für den modernen Look */
 @theme {
-  --color-primary: #6d28d9;     /* tiefes Violett – energisch */
-  --color-accent: #ec4899;      /* Pink/Magenta für Highlights */
-  --color-secondary: #f43f5e;   /* Rose als warmer Akzent */
-  --color-glass: rgba(255, 255, 255, 0.75);   /* für Light Glass */
-  --color-glass-dark: rgba(15, 23, 42, 0.85); /* für Dark Glass */
+  --color-primary: #6d28d9;
+  --color-accent: #ec4899;
+  --color-secondary: #f43f5e;
+  
+ 
+  --glass-light: rgba(255, 255, 255, 0.75);
+  --glass-dark: rgba(15, 23, 42, 0.85);
+  --glass-strong: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.12);
 }
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #f9fafb; /* Entspricht bg-gray-50 */
-    color: #111827; /* Entspricht text-gray-900 */
+    background-color: #09090b;
+    color: #f1f5f9;
   }
 }
-@layer base {
-  html {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
 
-  /* Neue Gradient- und Glass-Styles */
-  .glass {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px);
-  }
 
-  .dark .glass {
-    background: rgba(15, 23, 42, 0.85);
-  }
+.glass {
+  background: var(--glass-dark);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 
+    0 8px 32px -4px rgb(0 0 0 / 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.glass-light {
+  background: var(--glass-light);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+.glass-strong {
+  background: var(--glass-strong);
+  backdrop-filter: blur(32px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 40px -8px rgb(139 92 246 / 0.25);
+}
+
+
+.glass-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 20px 40px -10px rgb(139 92 246 / 0.3),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-glow {
+  box-shadow: 
+    0 0 40px -10px rgb(139 92 246),
+    inset 0 1px 0 rgba(255,255,255,0.15);
 }

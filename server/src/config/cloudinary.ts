@@ -13,7 +13,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'event-planner',
     allowed_formats: ['jpg', 'png', 'jpeg'],
-  } as any, // Das 'as any' ist wichtig, damit TS hier Ruhe gibt
+  } as any, 
 });
 
 export const upload = multer({ storage });

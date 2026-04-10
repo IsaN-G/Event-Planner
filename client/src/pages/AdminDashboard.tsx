@@ -42,7 +42,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchUsers();
     
-    // Heartbeat Logik
+    
     const sendHeartbeat = async () => {
       try { await api.post('/admin/heartbeat'); } catch (err) { console.error(err); }
     };
@@ -96,12 +96,11 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white py-16 px-6 relative overflow-hidden">
-      {/* Admin Background Glow */}
+
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-red-600/5 blur-[120px] rounded-full pointer-events-none" />
       
       <div className="max-w-6xl mx-auto relative z-10">
-        
-        {/* HEADER */}
+      
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
           <div className="space-y-4">
             <div className="flex items-center gap-3 text-red-500 mb-2">
@@ -124,7 +123,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* USER LIST CONTAINER */}
+       
         <div className="bg-zinc-900/20 border border-zinc-800/50 rounded-[40px] overflow-hidden backdrop-blur-xl">
           <div className="grid grid-cols-1 divide-y divide-zinc-800/50">
             {users.map((user) => {
@@ -134,7 +133,7 @@ export default function AdminDashboard() {
               return (
                 <div key={user.id} className="group p-8 flex flex-col lg:flex-row lg:items-center gap-8 hover:bg-white/[0.02] transition-all">
                   
-                  {/* Avatar & Basic Info */}
+                 
                   <div className="flex items-center gap-5 lg:w-1/3">
                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl border transition-all duration-500 ${isAdmin ? 'bg-red-500/10 border-red-500/20 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'bg-zinc-800 border-zinc-700 text-zinc-500 group-hover:border-violet-500 group-hover:text-violet-400'}`}>
                       {user.username.charAt(0).toUpperCase()}
@@ -148,7 +147,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  {/* Status & Role Section */}
+               
                   <div className="flex-1 grid grid-cols-2 gap-10">
                     <div className="space-y-2">
                       <span className="text-[8px] font-black uppercase text-zinc-700 tracking-[0.3em] flex items-center gap-2">
@@ -170,7 +169,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  {/* Actions */}
+             
                   <div className="flex items-center gap-3">
                     {!isAdmin ? (
                       <>

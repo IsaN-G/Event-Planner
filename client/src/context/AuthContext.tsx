@@ -1,4 +1,4 @@
-// src/context/AuthContext.tsx
+
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { type AxiosError } from 'axios';
 import api from '../services/api';
@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const restoreUser = async () => {
-      // 1. Sofort gespeicherten User laden (verhindert Flackern)
+     
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         try {
@@ -36,7 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // 2. Refresh Token versuchen
       try {
         const res = await api.post('/auth/refresh');
         const { accessToken, user: refreshedUser } = res.data;

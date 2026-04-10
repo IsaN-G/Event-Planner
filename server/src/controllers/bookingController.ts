@@ -3,9 +3,7 @@ import { AuthRequest } from '../types/auth';
 import { Registration, Event, User } from '../models'; 
 import CreateHttpError from 'http-errors';
 
-/**
- * 1. Einem Event beitreten (Ticket reservieren)
- */
+
 export const bookEvent = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = Number(req.params.id); 
@@ -16,17 +14,16 @@ export const bookEvent = async (req: AuthRequest, res: Response, next: NextFunct
     const event = await Event.findByPk(eventId);
     if (!event) throw CreateHttpError(404, "Event nicht gefunden.");
 
-    // Prüfen, ob der User bereits angemeldet ist
+  
     const existing = await Registration.findOne({ where: { userId, eventId } });
     if (existing) throw CreateHttpError(400, "Du bist bereits angemeldet.");
 
-    // Kapazität prüfen
+  
     const currentParticipants = await Registration.count({ where: { eventId } });
     if (currentParticipants >= event.maxParticipants) {
       throw CreateHttpError(400, "Event ist ausgebucht!");
     }
 
-    // Registrierung erstellen
     await Registration.create({ userId, eventId });
 
     res.status(201).json({ 
@@ -38,18 +35,16 @@ export const bookEvent = async (req: AuthRequest, res: Response, next: NextFunct
   }
 };
 
-/**
- * 2. Alle Teilnehmer eines spezifischen Events abrufen (für die Liste im Frontend)
- */
+
 export const getEventParticipants = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params; // Event ID aus der URL
+    const { id } = req.params; 
 
     const participants = await Registration.findAll({
       where: { eventId: id },
       include: [{
         model: User,
-        attributes: ['id', 'username'] // Nur notwendige Daten mitsenden
+        attributes: ['id', 'username'] 
       }]
     });
 
@@ -59,9 +54,7 @@ export const getEventParticipants = async (req: Request, res: Response, next: Ne
   }
 };
 
-/**
- * 3. Alle Events abrufen, für die der aktuelle User angemeldet ist
- */
+
 export const getMyBookings = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
@@ -71,7 +64,7 @@ export const getMyBookings = async (req: AuthRequest, res: Response, next: NextF
       include: [{
         model: Event,
         as: 'bookedEvents', 
-        through: { attributes: [] } // Verknüpfungstabelle ausblenden
+        through: { attributes: [] } 
       }]
     });
 

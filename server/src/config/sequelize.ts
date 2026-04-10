@@ -13,10 +13,10 @@ const sequelize = new Sequelize(process.env.DATABASE_URL as string, {
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false // Das ist der entscheidende Schalter
+      rejectUnauthorized: false 
     }
   },
-  // Wichtig für PgBouncer (Port 6543)
+
   pool: {
     max: 5,
     min: 0,

@@ -11,7 +11,6 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import socket from '../services/socket';
 
-// Interfaces - "any" durch "string | string[]" ersetzt
 interface EventDetailType {
   id: number;
   title: string;
@@ -22,7 +21,7 @@ interface EventDetailType {
   imageUrl?: string;
   status?: string; 
   organizerId: number;
-  agenda?: string | string[]; // Sauberer Typ statt any
+  agenda?: string | string[]; 
   lat?: number;
   lng?: number;
 }
@@ -43,7 +42,7 @@ interface Message {
   sender: { id: number | string; username: string; };
 }
 
-// Leaflet Icon Fix
+
 const DefaultIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -168,7 +167,6 @@ export default function EventDetail() {
     }
   };
 
-  // --- TOGGLE LOGIK FÜR DEN LIVE BUTTON ---
   const handleToggleEventStatus = async () => {
     if (!event) return;
     const newStatus = isEventStarted ? 'planned' : 'active';
@@ -333,7 +331,7 @@ export default function EventDetail() {
                 </div>
              </div>
 
-             {/* MODIFIZIERTER BUTTON: Jetzt mit Toggle-Funktion */}
+          
              <button 
                onClick={handleToggleEventStatus} 
                className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 text-xs flex-shrink-0 shadow-lg ${

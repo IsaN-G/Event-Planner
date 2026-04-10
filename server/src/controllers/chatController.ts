@@ -4,7 +4,7 @@ import Message from "../models/Message";
 import CreateHttpError from "http-errors";
 import { User } from "../models";
 
-// 1. Nachrichten laden (Inklusive 'type' Filterung falls gewünscht)
+
 export const getEventMessages = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const eventId = Number(req.params.eventId);
@@ -21,14 +21,14 @@ export const getEventMessages = async (req: AuthRequest, res: Response, next: Ne
   }
 };
 
-// 2. Nachricht senden (Die "Standard"-Funktion)
+
 export const sendMessage = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    // FIX: Sicherstellen, dass user existiert
+    
     if (!req.user) throw CreateHttpError(401, "Nicht autorisiert");
 
     const eventId = Number(req.params.eventId);
-    const { content, type } = req.body; // 'type' kommt vom Frontend ('public' oder 'host')
+    const { content, type } = req.body; 
     
     const userId = req.user.id;
     const username = req.user.username;
@@ -39,7 +39,7 @@ export const sendMessage = async (req: AuthRequest, res: Response, next: NextFun
       eventId,
       userId,
       content: content.trim(),
-      type: type || 'public' // Hier wird die Trennung gespeichert
+      type: type || 'public' 
     });
 
     res.status(201).json({
@@ -56,12 +56,12 @@ export const sendMessage = async (req: AuthRequest, res: Response, next: NextFun
   }
 };
 
-// 3. Nachricht löschen
+
 export const deleteMessage = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const { messageId } = req.params;
   
-      // Prüfung: Wenn es kein String ist oder fehlt, Fehler werfen
+
       if (typeof messageId !== 'string') {
         throw CreateHttpError(400, "Ungültige Nachrichten-ID");
       }
@@ -70,7 +70,7 @@ export const deleteMessage = async (req: AuthRequest, res: Response, next: NextF
   
       const userId = req.user.id;
       
-      // Jetzt ist messageId garantiert ein string
+    
       const message = await Message.findByPk(messageId);
     if (!message) return res.status(404).json({ message: "Nachricht nicht gefunden" });
 
@@ -88,10 +88,10 @@ export const deleteMessage = async (req: AuthRequest, res: Response, next: NextF
   }
 };
 
-// 4. Deine neue saveMessage Funktion (Zusammengefasst mit sendMessage Logik)
+
 export const saveMessage = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    // FIX: Das "!" sagt TypeScript: "Ich weiß, dass user hier existiert"
+  
     const userId = req.user!.id; 
     const { eventId, content, type } = req.body;
 
@@ -104,6 +104,6 @@ export const saveMessage = async (req: AuthRequest, res: Response, next: NextFun
 
     res.status(201).json(message);
   } catch (error) {
-    next(error); // Immer next(error) nutzen für den globalen Error-Handler
+    next(error); 
   }
 };

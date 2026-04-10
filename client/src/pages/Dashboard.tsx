@@ -66,18 +66,17 @@ export default function Dashboard() {
     }
   };
 
-  // Hilfsvariablen für Statistiken
   const totalBookings = myEvents.reduce((sum, event) => sum + (event.bookingsCount || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#09090b] text-white py-16 px-6 relative overflow-hidden">
-      {/* Background Decor */}
+     
       <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-fuchsia-600/5 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10">
         
-        {/* HEADER SECTION */}
+       
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-8">
           <div className="space-y-4">
             <div className="flex items-center gap-3 text-violet-500 mb-2">
@@ -98,7 +97,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* STATS ROW */}
+     
         {!loading && myEvents.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                 <div className="bg-zinc-900/40 border border-zinc-800/50 p-8 rounded-[32px] backdrop-blur-md">
@@ -154,7 +153,7 @@ export default function Dashboard() {
               >
                 <div className="flex flex-col lg:flex-row">
                   
-                  {/* Bild Sektion */}
+               
                   <div className="lg:w-80 h-64 lg:h-auto relative shrink-0">
                     <img 
                       src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4'} 
@@ -168,7 +167,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Info Sektion */}
+                 
                   <div className="flex-1 p-10 flex flex-col">
                     <div className="mb-6">
                         <div className="flex items-center gap-2 text-violet-400 mb-2">
@@ -182,7 +181,7 @@ export default function Dashboard() {
                         </h3>
                     </div>
 
-                    {/* Buchungs-Progress */}
+                  
                     <div className="mb-10 bg-black/20 p-6 rounded-3xl border border-zinc-800/50">
                       <div className="flex justify-between items-end mb-3">
                         <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Tickets verkauft</span>
@@ -200,7 +199,6 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Action Buttons - Jetzt kompakter & stylischer */}
                     <div className="flex flex-wrap gap-3">
                       <button 
                         onClick={() => navigate(`/events/${event.id}`)}

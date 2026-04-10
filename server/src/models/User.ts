@@ -10,7 +10,7 @@ class User extends Model {
   declare email: string;
   declare password: string;
   declare role: CreationOptional<"admin" | "user" | "organizer">;
-  declare lastLogin: CreationOptional<Date | null>; // NEU hinzugefügt
+  declare lastLogin: CreationOptional<Date | null>; 
 
   declare registrations?: NonAttribute<any[]>;
   declare bookedEvents?: NonAttribute<any[]>;
@@ -22,7 +22,7 @@ User.init({
   email: { type: DataTypes.STRING, allowNull: false, unique: true, validate: { isEmail: true } },
   password: { type: DataTypes.STRING, allowNull: false },
   role: { type: DataTypes.STRING, defaultValue: "user" },
-  lastLogin: { type: DataTypes.DATE, allowNull: true } // NEU hinzugefügt
+  lastLogin: { type: DataTypes.DATE, allowNull: true } 
 }, {
   sequelize,
   modelName: "User",

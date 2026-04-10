@@ -26,7 +26,7 @@ function App() {
       <Navbar />
       <main className="min-h-screen bg-gray-50">
         <Routes>
-          {/* Öffentliche Routen */}
+         
           <Route path="/" element={<Events />} />
           <Route path="/events" element={<Events />} />
           <Route path="/login" element={<Login />} />
@@ -35,13 +35,13 @@ function App() {
 
         
 
-          {/* User Routen */}
+         
           <Route 
             path="/my-tickets" 
             element={isAuthenticated ? <MyTickets /> : <Navigate to="/login" replace />} 
           />
 
-          {/* Organizer & Admin Routen */}
+    
           <Route 
             path="/dashboard" 
             element={isOrganizerOrAdmin ? <Dashboard /> : <Navigate to="/login" replace />} 
@@ -62,13 +62,11 @@ function App() {
             element={isOrganizerOrAdmin ? <Analytics /> : <Navigate to="/login" replace />} 
           />
 
-          {/* Admin Route */}
           <Route 
             path="/admin" 
             element={isAdmin ? <AdminDashboard /> : <Navigate to="/" replace />} 
           />
 
-          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

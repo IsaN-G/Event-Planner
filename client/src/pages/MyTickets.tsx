@@ -40,12 +40,11 @@ export default function MyTickets() {
         
         const axiosError = err as AxiosError;
         
-        // Bei 401 (nicht eingeloggt) zum Login weiterleiten
         if (axiosError.response?.status === 401) {
           navigate('/login');
         }
         
-        setTickets([]);        // Immer ein leeres Array setzen
+        setTickets([]);       
       } finally {
         setLoading(false);
       }
@@ -83,12 +82,12 @@ export default function MyTickets() {
 
   return (
     <div className="min-h-screen bg-[#09090b] py-16 px-6 relative overflow-hidden">
-      {/* Background Decor */}
+   
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-violet-600/10 blur-[120px] rounded-full pointer-events-none" />
       
       <div className="max-w-4xl mx-auto relative z-10">
         
-        {/* Header Section */}
+        
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div>
             <button 
@@ -136,7 +135,7 @@ export default function MyTickets() {
                 key={event.id} 
                 className="group relative flex flex-col md:flex-row bg-zinc-900/40 border border-zinc-800/50 rounded-[40px] overflow-hidden hover:border-violet-500/50 transition-all duration-500"
               >
-                {/* Visual Part (Bild) */}
+            
                 <div className="md:w-72 h-64 md:h-auto relative shrink-0">
                   <img 
                     src={event.imageUrl || 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4'} 
@@ -150,7 +149,6 @@ export default function MyTickets() {
                   </div>
                 </div>
 
-                {/* Ticket Info Part */}
                 <div className="flex-1 p-10 flex flex-col justify-center">
                    <div className="flex items-center gap-2 text-violet-400 mb-4">
                       <Calendar size={14} />
@@ -178,7 +176,6 @@ export default function MyTickets() {
                   </button>
                 </div>
 
-                {/* QR Code Section */}
                 <div className="md:w-64 bg-zinc-950/50 border-t md:border-t-0 md:border-l border-zinc-800/50 p-8 flex flex-col items-center justify-center relative">
                   <div className="hidden md:block absolute top-[-16px] left-[-16px] w-8 h-8 bg-[#09090b] rounded-full border border-zinc-800/50" />
                   <div className="hidden md:block absolute bottom-[-16px] left-[-16px] w-8 h-8 bg-[#09090b] rounded-full border border-zinc-800/50" />

@@ -15,7 +15,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
 
-    // FORCE: id immer als String speichern
+   
     const safeId = String(decoded.id);
 
     req.user = {

@@ -11,7 +11,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // ←←← NEUER GUARD: Verhindert Endlosschleife beim Refresh selbst!
     if (originalRequest?.url?.includes('/auth/refresh')) {
       return Promise.reject(error);
     }
@@ -26,7 +25,7 @@ api.interceptors.response.use(
         api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
-        // Optional: User auch im localStorage aktualisieren
+      
         if (refreshedUser) {
           localStorage.setItem('user', JSON.stringify(refreshedUser));
         }

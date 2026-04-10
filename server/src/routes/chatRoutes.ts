@@ -4,7 +4,6 @@ import { sendMessage, getEventMessages, deleteMessage} from "../controllers/chat
 
 const router = Router();
 
-// Alle Chat-Routen sind geschützt (nur eingeloggte User)
 router.use(authMiddleware);
 
 router.get("/:eventId", getEventMessages);

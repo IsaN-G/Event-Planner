@@ -85,7 +85,7 @@ export default function Events() {
 
       <div className="max-w-[1400px] mx-auto px-6 py-10">
         
-        {/* HEADER SECTION */}
+   
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-12 gap-8">
           <div className="space-y-4">
             <h1 className="text-7xl font-black tracking-tighter uppercase italic leading-none text-white">
@@ -103,7 +103,6 @@ export default function Events() {
           )}
         </div>
 
-        {/* NEW WOW-CATEGORY-FILTER (Pills statt Dropdown) */}
         <div className="flex flex-wrap gap-2 mb-8">
           {categories.map((cat) => (
             <button
@@ -120,7 +119,6 @@ export default function Events() {
           ))}
         </div>
 
-        {/* SEARCH BAR (Jetzt ganz clean) */}
         <div className="relative mb-16 group">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-violet-500 transition-colors" size={20} />
           <input 
@@ -132,7 +130,6 @@ export default function Events() {
           />
         </div>
 
-        {/* ERROR / LOADING / GRID */}
         {error && (
           <div className="mb-10 p-5 bg-red-500/10 border border-red-500/20 rounded-[24px] flex items-center gap-4 text-red-500">
             <AlertCircle size={20} />

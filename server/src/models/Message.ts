@@ -4,9 +4,9 @@ import sequelize from '../config/sequelize';
 class Message extends Model {
   declare id: CreationOptional<string>;
   declare eventId: number;
-  declare userId: number;        // ← Geändert auf number, da unten INTEGER steht
+  declare userId: number;        
   declare content: string;
-  declare type: 'public' | 'host'; // ← Hier deklarieren
+  declare type: 'public' | 'host'; 
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -28,7 +28,7 @@ Message.init({
     allowNull: false
   },
   userId: {
-    type: DataTypes.INTEGER, // Deine DB nutzt hier offenbar Integer-IDs für User
+    type: DataTypes.INTEGER, 
     allowNull: false
   },
   content: {
@@ -40,7 +40,7 @@ Message.init({
   modelName: 'Message',
   tableName: 'messages',
   timestamps: true,
-  underscored: true, // Sorgt für created_at und updated_at in der DB
+  underscored: true, 
 });
 
 export default Message;

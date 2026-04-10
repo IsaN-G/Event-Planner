@@ -1,10 +1,9 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://event-planner-backend-m16o.onrender.com/api/$1"
+      "source": "/api/:path*",
+      "destination": "https://event-planner-backend-m16o.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",

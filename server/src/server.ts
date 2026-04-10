@@ -20,7 +20,7 @@ import Message from "./models/Message";
 console.log("DB-URL vorhanden:", !!process.env.DATABASE_URL);
 
 const app = express();
-app.set('trust proxy', 1);
+
 const httpServer = createServer(app);
 
 const port = process.env.PORT || 4000;

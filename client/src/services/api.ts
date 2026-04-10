@@ -3,7 +3,7 @@ import axios from 'axios';
 // WICHTIG: baseURL leer lassen oder nur '/' nutzen, 
 // da die vercel.json das /api bereits als "Source" erkennt.
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://event-planner-backend-m16o.onrender.com/api',
   withCredentials: true,
 });
 

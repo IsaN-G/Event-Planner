@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         setUser(refreshedUser);
         localStorage.setItem('user', JSON.stringify(refreshedUser));
-      } catch (err) {
+      } catch {
         console.log("Refresh im Hintergrund fehlgeschlagen.");
         // NICHT sofort setUser(null), außer der Error ist definitiv "Unauthorized"
       } finally {

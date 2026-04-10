@@ -25,30 +25,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const restoreUser = async () => {
-      // 1. Zuerst schauen, ob wir noch jemanden im LocalStorage haben
       const storedUser = localStorage.getItem('user');
+      // 1. Sofort User aus dem Speicher laden (verhindert Redirect)
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
   
       try {
-        // 2. Versuchen, den Token im Hintergrund zu erneuern
         const res = await api.post('/auth/refresh');
         const { accessToken, user: refreshedUser } = res.data;
-  
         api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         setUser(refreshedUser);
         localStorage.setItem('user', JSON.stringify(refreshedUser));
-      } catch {
-        console.log("Refresh im Hintergrund fehlgeschlagen.");
-        // NICHT sofort setUser(null), außer der Error ist definitiv "Unauthorized"
+      } catch  {
+        console.log("Session abgelaufen oder Backend schläft.");
+        // Nur ausloggen, wenn wirklich kein gespeicherter User da ist
+        if (!storedUser) setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
-  
     restoreUser();
   }, []);
+
   const login = async (email: string, password: string) => {
     try {
       const res = await api.post('/auth/login', { email, password }, { withCredentials: true });

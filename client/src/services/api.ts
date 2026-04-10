@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+console.log("🚀 API BaseURL wird verwendet:", 'https://event-planner-backend-m16o.onrender.com/api');
 // WICHTIG: baseURL leer lassen oder nur '/' nutzen, 
 // da die vercel.json das /api bereits als "Source" erkennt.
 const api = axios.create({
@@ -16,7 +16,7 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const res = await api.post('/auth/refresh', {}, { withCredentials: true }); // ← api statt axios
+        const res = await api.post('/auth/refresh', {}, { withCredentials: true });
         const newToken = res.data.accessToken;
 
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`;

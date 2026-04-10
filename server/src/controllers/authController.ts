@@ -56,9 +56,9 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     );
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',     // wichtig für HTTPS
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',  // ← DAS IST DER FIX
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Tage
+      secure: process.env.NODE_ENV === 'production',     
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',  
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
 
     res.json({

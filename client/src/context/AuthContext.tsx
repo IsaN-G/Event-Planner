@@ -23,31 +23,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Beim App-Start versuchen, den User über Refresh Token wiederherzustellen
   useEffect(() => {
     const restoreUser = async () => {
+      // 1. Zuerst schauen, ob wir noch jemanden im LocalStorage haben
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+  
       try {
-        const res = await api.post('/auth/refresh', {}, { withCredentials: true });
-        const accessToken = res.data.accessToken;
-
+        // 2. Versuchen, den Token im Hintergrund zu erneuern
+        const res = await api.post('/auth/refresh');
+        const { accessToken, user: refreshedUser } = res.data;
+  
         api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-
-        // User-Daten aus localStorage holen (vorübergehend)
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch  {
-        console.log("Kein gültiges Refresh Token gefunden.");
-        setUser(null);
+        setUser(refreshedUser);
+        localStorage.setItem('user', JSON.stringify(refreshedUser));
+      } catch (err) {
+        console.log("Refresh im Hintergrund fehlgeschlagen.");
+        // NICHT sofort setUser(null), außer der Error ist definitiv "Unauthorized"
       } finally {
         setIsLoading(false);
       }
     };
-
+  
     restoreUser();
   }, []);
-
   const login = async (email: string, password: string) => {
     try {
       const res = await api.post('/auth/login', { email, password }, { withCredentials: true });

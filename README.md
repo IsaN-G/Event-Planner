@@ -52,7 +52,7 @@ Mit Echtzeit-Chat, interaktiven Karten, Ticket-System, Admin-Panel und Organizer
    cd event-planner
 
 
-#2. Abhängigkeiten installieren
+2. Abhängigkeiten installieren
    ```bash
    bun install
 
@@ -101,9 +101,9 @@ textevent-planner/
 
 
 👤 Test-Account (bereits angelegt)
-E-Mail : testusr@gmail.com
-Passwort : testuser
-Rolle : user
+E-Mail: testusr@gmail.com
+Passwort: testuser
+Rolle: user
 
 
 📸 Wichtige Features im Überblick

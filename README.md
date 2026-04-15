@@ -1,40 +1,124 @@
-# 📅 EventPlanner - Pro Fullstack Management System
+# 🎟️ **EventPlanner** – Das moderne Event-Management System
 
-Ein hochmodernes, interaktives System zur Planung, Buchung und Live-Begleitung von Events. Gebaut für Performance und Skalierbarkeit mit einem modernen Tech-Stack.
+**Eine vollwertige Fullstack-Plattform zum Erstellen, Buchen und Live-Begleiten von Events**  
+Mit Echtzeit-Chat, interaktiven Karten, Ticket-System, Admin-Panel und Organizer-Dashboard.
 
-## 🚀 Neue & Kern-Features
+---
 
-* **Rollenbasiertes System:** Differenzierte Berechtigungen für `User`, `Organizer` und `Admin`.
-* **Live-Event-Steuerung:** Organizer können Events per Knopfdruck "Live" schalten oder den Status jederzeit zurücksetzen.
-* **Interaktiver Live-Chat:** Echtzeit-Kommunikation zwischen Teilnehmern und Hosts während des Events via **Socket.io**.
-* **Dynamisches Preis-System:** Unterstützung für kostenlose und kostenpflichtige Events (inkl. automatischer Typ-Konvertierung von Strings zu Numbers).
-* **Smart Agenda:** Flexibler Zeitplan-Editor für Events mit automatischer Validierung und Array-Mapping.
-* **Geodaten-Integration:** Standort-Visualisierung durch interaktive **Leaflet-Karten** (OpenStreetMap).
-* **Sicherheit:** * Automatisches Passwort-Hashing via `bcrypt` Hooks direkt im Sequelize-Model.
-    * Sichere API-Kommunikation durch `JWT (JSON Web Tokens)`.
-    * Zentrale Konfiguration der Umgebungsvariablen.
+## ✨ Highlights
+
+- ✅ **Rollenbasiertes System** (`User` • `Organizer` • `Admin`)
+- ✅ **Live-Chat** während des Events (Socket.io)
+- ✅ **Echtzeit-Status** – Organizer kann Events per Knopfdruck „Live“ schalten
+- ✅ **Interaktive Leaflet-Karte** mit Standort-Suche
+- ✅ **Cloudinary-Upload** für Event-Bilder
+- ✅ **Ticket-Buchung** mit Teilnehmer-Limit
+- ✅ **Organizer Dashboard** mit Analytics & eigenen Events
+- ✅ **Admin Panel** zur User-Verwaltung
+- ✅ **KI-Boost** – Automatische Event-Beschreibung generieren
+- ✅ **Responsives Dark-Design** mit Glassmorphism
+- ✅ **JWT + Refresh-Token** Authentifizierung
+
+---
 
 ## 🛠 Tech Stack
 
-**Frontend:**
-* React (Vite) mit **TypeScript**
-* Tailwind CSS (Modernes Dark-UI Design)
-* Lucide-React für Icons
-* Socket.io-client für Echtzeit-Features
-* Axios für API-Anfragen
-* React-Leaflet für Maps
+**Frontend (Vite + React 19)**
+- React + TypeScript
+- Tailwind CSS v4 + Glassmorphism
+- React Router v7
+- Socket.io-client
+- React-Leaflet (Karten)
+- Lucide Icons
+- Cloudinary Widget
 
-**Backend:**
-* Node.js & Express
-* Sequelize ORM (PostgreSQL / Supabase)
-* Socket.io (WebSockets)
-* Multer für Bild-Uploads
-* JWT für Authentifizierung
+**Backend (Node.js + Express)**
+- Express + Sequelize (PostgreSQL)
+- Socket.io (Echtzeit-Chat)
+- JWT + HTTP-Only Cookies
+- Multer + Cloudinary
+- Bcrypt (Passwort-Hashing)
 
-## 📦 Installation & Setup
+**Datenbank**
+- PostgreSQL (Supabase / Neon / Railway)
+
+---
+
+## 🚀 Lokales Setup
 
 ### 1. Repository klonen
-```bash
-git clone [https://github.com/dein-username/event-planner.git](https://github.com/dein-username/event-planner.git)
-cd event-planner
+   ```bash
+   git clone <dein-repo-url>
+   cd event-planner
 
+
+#2. Abhängigkeiten installieren
+   ```bash
+   bun install
+
+3. Frontend & Backend gleichzeitig starten
+   ```bash
+   run dev
+→ Frontend läuft auf http://localhost:5173
+→ Backend läuft auf http://localhost:4000
+
+
+🔑 Wichtige Umgebungsvariablen
+Erstelle im Root eine .env Datei:
+
+# Backend
+DATABASE_URL=postgres://...
+JWT_SECRET=dein_super_geheimes_secret
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+# Optional (falls du den Render-Backend-Link nutzt)
+VITE_API_URL=https://dein-backend.onrender.com
+
+
+📁 Projektstruktur
+textevent-planner/
+├── client/                  # React + Vite Frontend
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── components/
+│   │   ├── context/
+│   │   └── services/
+│   └── index.html
+├── server/                  # Node.js + Express Backend
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── routes/
+│   │   ├── models/
+│   │   ├── middleware/
+│   │   └── config/
+├── package.json             # Root (concurrently + bun)
+└── README.md
+
+
+
+👤 Test-Account (bereits angelegt)
+E-Mail : testusr@gmail.com
+Passwort : testuser
+Rolle : user
+
+
+📸 Wichtige Features im Überblick
+
+- Events entdecken mit Kategorien & Suche
+- Event erstellen mit Bild-Upload, Karte und Agenda
+- Live-Chat (öffentlich + Host-Chat)
+- Ticket buchen mit Auslastungsanzeige
+- Meine Tickets mit QR-Code-Vorschau
+- Organizer Dashboard mit Statistik
+- Admin Panel zur User-Verwaltung
+
+
+🚀 Deployment
+
+Frontend: Vercel (automatisch über vercel.json)
+Backend: Render / Railway / Fly.io (Port 4000)
+Datenbank: Supabase, Neon oder Railway Postgres

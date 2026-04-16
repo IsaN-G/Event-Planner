@@ -101,7 +101,7 @@ textevent-planner/
 
 
 👤 Test-Account (bereits angelegt)
-E-Mail: testusr@gmail.com
+E-Mail: testuser@gmail.com
 Passwort: testuser
 Rolle: user
 

@@ -4,22 +4,22 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
 import { Server } from "socket.io";
-
 import { sequelize } from "./models/index";
 import { errorHandler } from "./middleware/errorHandler";
-
 import authRoutes from "./routes/authRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import adminRoutes from './routes/adminRoutes';
 import bookingRoutes from './routes/bookingRoutes';
 import chatRoutes from "./routes/chatRoutes";
-
-
 import Message from "./models/Message";
 
 console.log("DB-URL vorhanden:", !!process.env.DATABASE_URL);
 
 const app = express();
+
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong ✅');
+});
 
 const httpServer = createServer(app);
 
